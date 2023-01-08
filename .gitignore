@@ -230,3 +230,4 @@ cython_debug/
 
 antonym_aug/data/*
 ganbert_subj/data/*
+gan_aug/optuna/stats/*

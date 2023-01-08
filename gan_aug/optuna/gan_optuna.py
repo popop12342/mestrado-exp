@@ -1,30 +1,19 @@
-import time
 import random
-import datetime
-import optuna
+import time
+from typing import Dict, List
 
+import numpy as np
+import optuna
 import torch
 import torch.nn.functional as F
-
-import pandas as pd
-import numpy as np
-
-from transformers import *
-
+from data_utils import format_time, save_stats
 from dataloader import create_dataloaders
-
-from generator import Generator
 from discriminator import Discriminator
-
-
-def format_time(elapsed):
-    '''
-    Takes a time in seconds and returns a string hh:mm:ss
-    '''
-    # Round to the nearest second.
-    elapsed_rounded = int(round((elapsed)))
-    # Format as hh:mm:ss
-    return str(datetime.timedelta(seconds=elapsed_rounded))
+from generator import Generator
+from optuna.trial import Trial
+from sklearn.metrics import f1_score, precision_score, recall_score
+from torch.utils.data import DataLoader
+from transformers import *
 
 ##Set random values
 seed_val = 42
@@ -54,13 +43,14 @@ else:
     print('No GPU available, using the CPU instead.')
     device = torch.device("cpu")
 
-def objective(trail):
+def objective(trial: Trial) -> float:
+    """Objetive function of one training trail to optimize test accuracy"""
     ## Load data
     train_dataloader, test_dataloader, seq_size, vocab = create_dataloaders()
 
     ## Models
-    generator = Generator(trail, noise_size=len(vocab), output_size=len(vocab))
-    discriminator = Discriminator(trail, input_size=seq_size, vocab_size=len(vocab), padding_idx=vocab['<pad>'])
+    generator = Generator(trial, noise_size=len(vocab), output_size=len(vocab))
+    discriminator = Discriminator(trial, input_size=seq_size, vocab_size=len(vocab), padding_idx=vocab['<pad>'])
 
     if torch.cuda.is_available():
         generator.cuda()
@@ -68,7 +58,6 @@ def objective(trail):
 
     ## Training
     training_stats = []
-    final_accuracy = 0
 
     g_vars = [v for v in generator.parameters()]
     d_vars = [v for v in discriminator.parameters()]
@@ -79,10 +68,6 @@ def objective(trail):
 
     # For each epoch...
     for epoch_i in range(0, num_train_epochs):
-        # ========================================
-        #               Training
-        # ========================================
-        # Perform one full pass over the training set.
         print("")
         print('======== Epoch {:} / {:} ========'.format(epoch_i + 1, num_train_epochs))
         print('Training...')
@@ -203,86 +188,88 @@ def objective(trail):
         print("  Average training loss discriminator: {0:.3f}".format(avg_train_loss_d))
         print("  Training epcoh took: {:}".format(training_time))
 
-        print("Saving the models...............................")
+        # print("Saving the models...............................")
         # Saving the model
         # torch.save(transformer, 'transformer')
         # torch.save(emergency_discriminator, 'emergency_discriminator')
         # torch.save(patient_discriminator, 'patient_discriminator')
 
-            
-        # ========================================
-        #     TEST ON THE EVALUATION DATASET
-        # ========================================
-        # After the completion of each training epoch, measure our performance on
-        # our test set.
-        print("")
-        print("Running Test...")
-
-        t0 = time.time()
-
-        # Put the model in evaluation mode--the dropout layers behave differently
-        # during evaluation.
-        discriminator.eval()
-        generator.eval()
-
-        # Tracking variables 
-        total_test_accuracy = 0
-    
-        total_test_loss = 0
-        nb_test_steps = 0
-
-        all_preds = []
-        all_labels_ids = []
-
-        #loss
-        nll_loss = torch.nn.CrossEntropyLoss(ignore_index=-1)
-
-        # Evaluate data for one epoch
-        for text, label in test_dataloader:
-            # Tell pytorch not to bother with constructing the compute graph during
-            # the forward pass, since this is only needed for backprop (training).
-            with torch.no_grad():
-                _, logits, probs = discriminator(text)
-                filtered_logits = logits[:,0:-1]
-                total_test_loss += nll_loss(filtered_logits, label)
-                
-            # Accumulate the predictions and the input labels
-            _, preds = torch.max(filtered_logits, 1)
-            all_preds += preds.detach().cpu()
-            all_labels_ids += label.detach().cpu()
-
-
-        # Report the final accuracy for this validation run.
-        all_preds = torch.stack(all_preds).numpy()
-        all_labels_ids = torch.stack(all_labels_ids).numpy()
-        test_accuracy = np.sum(all_preds == all_labels_ids) / len(all_preds)
-        print("  Accuracy: {0:.3f}".format(test_accuracy))
-        final_accuracy = test_accuracy
-
-        # Calculate the average loss over all of the batches.
-        avg_test_loss = total_test_loss / len(test_dataloader)
-        avg_test_loss = avg_test_loss.item()
-
-        # Measure how long the validation run took.
-        test_time = format_time(time.time() - t0)
-        
-        print("  Test Loss: {0:.3f}".format(avg_test_loss))
-        print("  Test took: {:}".format(test_time))
-
-        # Record all statistics from this epoch.
-        training_stats.append(
-            {
-                'epoch': epoch_i + 1,
-                'Training Loss generator': avg_train_loss_g,
-                'Training Loss discriminator': avg_train_loss_d,
-                'Valid. Loss': avg_test_loss,
-                'Valid. Accur.': test_accuracy,
-                'Training Time': training_time,
-                'Test Time': test_time
-            }
+        test_accuracy = test(
+            trial, test_dataloader, generator, discriminator, epoch_i,
+            avg_train_loss_g, avg_train_loss_d, training_time, training_stats
         )
-        trail.report(test_accuracy, step=epoch_i+1)
 
+    save_stats(training_stats, trial)
+    
+    return test_accuracy
+
+def test(trail: Trial, test_dataloader: DataLoader, generator: Generator, discriminator: Discriminator, epoch_i: int, avg_train_loss_g: float, avg_train_loss_d: float, training_time: int, training_stats: List[Dict]):
+    """Perform test step at the end of one epoch"""
+
+    print("")
+    print("Running Test...")
+
+    t0 = time.time()
+
+    # Put the model in evaluation mode--the dropout layers behave differently
+    # during evaluation.
+    discriminator.eval()
+    generator.eval()
+
+    # Tracking variables 
+        # Tracking variables 
+    # Tracking variables 
+    total_test_loss = 0
+    all_preds = []
+    all_labels_ids = []
+
+    #loss
+    nll_loss = torch.nn.CrossEntropyLoss(ignore_index=-1)
+
+    # Evaluate data for one epoch
+    for text, label in test_dataloader:
+        # Tell pytorch not to bother with constructing the compute graph during
+        # the forward pass, since this is only needed for backprop (training).
+        with torch.no_grad():
+            _, logits, probs = discriminator(text)
+            filtered_logits = logits[:,0:-1]
+            total_test_loss += nll_loss(filtered_logits, label)
+                
+        # Accumulate the predictions and the input labels
+        _, preds = torch.max(filtered_logits, 1)
+        all_preds += preds.detach().cpu()
+        all_labels_ids += label.detach().cpu()
+
+    # Report the final accuracy for this validation run.
+    all_preds = torch.stack(all_preds).numpy()
+    all_labels_ids = torch.stack(all_labels_ids).numpy()
+    test_accuracy = np.sum(all_preds == all_labels_ids) / len(all_preds)
+    print("  Accuracy: {0:.3f}".format(test_accuracy))
+
+    # Calculate the average loss over all of the batches.
+    avg_test_loss = total_test_loss / len(test_dataloader)
+    avg_test_loss = avg_test_loss.item()
+
+    # Measure how long the validation run took.
+    test_time = format_time(time.time() - t0)
+        
+    print("  Test Loss: {0:.3f}".format(avg_test_loss))
+    print("  Test took: {:}".format(test_time))
+
+    # Record all statistics from this epoch.
+    training_stats.append({
+        'epoch': epoch_i + 1,
+        'Training Loss generator': avg_train_loss_g,
+        'Training Loss discriminator': avg_train_loss_d,
+        'Valid. Loss': avg_test_loss,
+        'Valid. Accur.': test_accuracy,
+        'Valid. F1': f1_score(all_labels_ids, all_preds),
+        'Valid. Recall': recall_score(all_labels_ids, all_preds),
+        'Valid. Precision': precision_score(all_labels_ids, all_preds),
+        'Training Time': training_time,
+        'Test Time': test_time
+    })
+    trail.report(test_accuracy, step=epoch_i+1)
     return test_accuracy
 
 
