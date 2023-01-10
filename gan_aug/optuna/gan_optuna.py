@@ -280,5 +280,5 @@ if __name__ == '__main__':
         direction='maximize',
         load_if_exists=True
     )
-    study.optimize(objective, n_trials=1)
+    study.optimize(objective, n_trials=3)
     print(f"Best value: {study.best_value} (params: {study.best_params})")
