@@ -11,13 +11,26 @@ def load_trial_stats(trial_num: int) -> List[Dict[str, object]]:
         stats = json.load(stat_file)
     return stats
 
+def plot_train_losses(trial_stats: List[Dict[str, object]]):
+    epochs = [x['epoch'] for x in trial_stats]
+    gen_loss = [x['Training Loss generator'] for x in trial_stats]
+    dis_loss = [x['Training Loss discriminator'] for x in trial_stats]
+
+    plt.plot(epochs, gen_loss)
+    plt.plot(epochs, dis_loss)
+    plt.xlabel('Epochs')
+    plt.ylabel('Loss')
+    plt.legend(['Generator', 'Discriminator'])
+
+    plt.show()
+
 def plot_loss(trial_stats: List[Dict[str, object]]):
     epochs = [x['epoch'] for x in trial_stats]
     loss = [x['Valid. Loss'] for x in trial_stats]
 
     plt.plot(epochs, loss)
     plt.xlabel('Epochs')
-    plt.ylabel('Loss')
+    plt.ylabel('Validation Loss')
 
     plt.show()
 
@@ -63,6 +76,7 @@ def plot_precision(trial_stats: List[Dict[str, object]]):
 
 def plot_trial_metrics(trial_num: int):
     stats = load_trial_stats(trial_num)
+    plot_train_losses(stats)
     plot_loss(stats)
     plot_accuracy(stats)
     plot_f1(stats)

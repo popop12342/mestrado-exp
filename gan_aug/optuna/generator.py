@@ -6,8 +6,11 @@ class Generator(nn.Module):
         super(Generator, self).__init__()
         layers = []
 
-        self.num_layers = trail.suggest_int('generator_layers', 1, 4)
-        self.hidden_size = trail.suggest_int('generator_hidden_size', 32, 128, 16)
+        # study gantext
+        # self.num_layers = trail.suggest_int('generator_layers', 1, 4)
+        # self.hidden_size = trail.suggest_int('generator_hidden_size', 32, 128, 16)
+        self.num_layers = 4
+        self.hidden_size = 96
 
         self.gru = nn.GRU(
             input_size=noise_size,

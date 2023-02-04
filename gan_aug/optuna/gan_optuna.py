@@ -23,7 +23,7 @@ torch.manual_seed(seed_val)
 
 ## Params
 print_each_n_step = 50
-num_train_epochs = 8
+num_train_epochs = 30
 noise_size = 100
 batch_size = 8
 epsilon = 1e-8
@@ -67,6 +67,7 @@ def objective(trial: Trial) -> float:
 
 
     # For each epoch...
+    num_train_epochs = trial.suggest_int('epochs', 10, 500, 10)
     for epoch_i in range(0, num_train_epochs):
         print("")
         print('======== Epoch {:} / {:} ========'.format(epoch_i + 1, num_train_epochs))
@@ -276,9 +277,9 @@ def test(trail: Trial, test_dataloader: DataLoader, generator: Generator, discri
 if __name__ == '__main__':
     study = optuna.create_study(
         storage = 'sqlite:///db.sqlite3',
-        study_name='gantext',
+        study_name='gantext-2',
         direction='maximize',
         load_if_exists=True
     )
-    study.optimize(objective, n_trials=3)
+    study.optimize(objective, n_trials=10)
     print(f"Best value: {study.best_value} (params: {study.best_params})")

@@ -6,8 +6,11 @@ class Discriminator(nn.Module):
         self.embedding = nn.EmbeddingBag(vocab_size, input_size, padding_idx=padding_idx)
         layers = []
         
-        num_layers = trail.suggest_int('discriminator_layers', 1, 4)
-        hidden = trail.suggest_int('discriminator_hidden_size', 32, 128, 16)
+        # study gantext
+        # num_layers = trail.suggest_int('discriminator_layers', 1, 4)
+        # hidden = trail.suggest_int('discriminator_hidden_size', 32, 128, 16)
+        num_layers = 4
+        hidden = 96
         dropout_rate = 0.2
         
         hidden_sizes = [input_size] + [hidden] * num_layers
