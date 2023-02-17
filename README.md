@@ -14,3 +14,8 @@ O diretório `gan_aug` tem o experimento que utiliza um GAN para realizar
 aumento de dados textuais. No subdiretório `gan_aug/optuna` experimos com ele
 para otiimzação de hiper-parâmetros utilizando a ferramenta Optuna, rodando 
 o arquivo princiapl gan_optuna.py.
+
+Os datasets utilizados nesses experimentos deverão estar no diretório
+`gan_aug/data`. Atualmente, suportamos os datasets subj e
+[acllmbd](http://www.aclweb.org/anthology/P11-1015%7D) que foi baixado do
+[Kaggle](https://www.kaggle.com/datasets/pawankumargunjan/imdb-review).
