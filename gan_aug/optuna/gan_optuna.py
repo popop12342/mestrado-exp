@@ -67,7 +67,7 @@ def objective(trial: Trial) -> float:
 
 
     # For each epoch...
-    num_train_epochs = trial.suggest_int('epochs', 10, 500, 10)
+    num_train_epochs = 20
     for epoch_i in range(0, num_train_epochs):
         print("")
         print('======== Epoch {:} / {:} ========'.format(epoch_i + 1, num_train_epochs))
@@ -116,7 +116,6 @@ def objective(trial: Trial) -> float:
             
             logits_list = torch.split(logits, batch_size)
             D_real_logits = logits_list[0]
-            D_fake_logits = logits_list[1]
             
             probs_list = torch.split(probs, batch_size)
             D_real_probs = probs_list[0]
@@ -189,11 +188,10 @@ def objective(trial: Trial) -> float:
         print("  Average training loss discriminator: {0:.3f}".format(avg_train_loss_d))
         print("  Training epcoh took: {:}".format(training_time))
 
-        # print("Saving the models...............................")
+        print("Saving the models...............................")
         # Saving the model
-        # torch.save(transformer, 'transformer')
-        # torch.save(emergency_discriminator, 'emergency_discriminator')
-        # torch.save(patient_discriminator, 'patient_discriminator')
+        torch.save(generator, '../models/generator')
+        torch.save(discriminator, '../models/discriminator')
 
         test_accuracy = test(
             trial, test_dataloader, generator, discriminator, epoch_i,
@@ -286,5 +284,5 @@ if __name__ == '__main__':
         load_if_exists=True
     )
     study.set_user_attr('dataset', args.dataset)
-    study.optimize(objective, n_trials=10)
+    study.optimize(objective, n_trials=1)
     print(f"Best value: {study.best_value} (params: {study.best_params})")
