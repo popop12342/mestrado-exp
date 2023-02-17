@@ -4,9 +4,7 @@ import matplotlib.pyplot as plt
 from argparse import ArgumentParser
 from typing import Dict, List
 
-def load_trial_stats(trial_num: int) -> List[Dict[str, object]]:
-    filename = 'study-gantext-trial-{}.json'.format(trial_num)
-    filepath = os.path.join('..', 'optuna', 'stats', filename)
+def load_trial_stats(filepath: int) -> List[Dict[str, object]]:
     with open(filepath, 'r') as stat_file:
         stats = json.load(stat_file)
     return stats
@@ -74,8 +72,8 @@ def plot_precision(trial_stats: List[Dict[str, object]]):
 
     plt.show()
 
-def plot_trial_metrics(trial_num: int):
-    stats = load_trial_stats(trial_num)
+def plot_trial_metrics(file: str):
+    stats = load_trial_stats(file)
     plot_train_losses(stats)
     plot_loss(stats)
     plot_accuracy(stats)
@@ -86,8 +84,8 @@ def plot_trial_metrics(trial_num: int):
 
 if __name__ == '__main__':
     parser = ArgumentParser()
-    parser.add_argument('-t',  '--trial_num', type=int, help='Optuna trial number to plot stats')
+    parser.add_argument('-f',  '--file', help='Stats file path')
     args = parser.parse_args()
 
-    plot_trial_metrics(args.trial_num)
+    plot_trial_metrics(args.file)
     

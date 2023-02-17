@@ -16,7 +16,7 @@ def build_vocab(train_sentences):
     vocab.set_default_index(vocab['<unk>'])
     return vocab
 
-def create_dataset(setnences, labels, vocab, seq_size):
+def create_dataset(setnences, labels, vocab, seq_size, device):
     input_ids = []
     label_ids = []
 
@@ -31,12 +31,12 @@ def create_dataset(setnences, labels, vocab, seq_size):
         else:
             processed_text = processed_text[:seq_size]
         input_ids.append(processed_text)
-    input_ids = torch.tensor(input_ids, dtype=torch.int32)
-    label_ids = torch.tensor(label_ids)
+    input_ids = torch.tensor(input_ids, dtype=torch.int32, device=device)
+    label_ids = torch.tensor(label_ids, device=device)
     return torch.utils.data.TensorDataset(input_ids, label_ids)
 
 
-def create_dataloaders(dataset_name: str, batch_size: int = 8):
+def create_dataloaders(dataset_name: str, batch_size: int = 8, device: str = 'cpu'):
     train_sentences, train_labels, test_sentences, test_labels = load_dataset(dataset_name)
     print('Using dataset ' + dataset_name)
     vocab = build_vocab(train_sentences)
@@ -44,8 +44,8 @@ def create_dataloaders(dataset_name: str, batch_size: int = 8):
     seq_size = min(seq_size, MAX_SEQ_SIZE)
     print('Seq size is ' + str(seq_size) + ' maximum is ' + str(MAX_SEQ_SIZE))
 
-    train_dataset = create_dataset(train_sentences, train_labels, vocab, seq_size)
-    test_dataset = create_dataset(test_sentences, test_labels, vocab, seq_size)
+    train_dataset = create_dataset(train_sentences, train_labels, vocab, seq_size, device)
+    test_dataset = create_dataset(test_sentences, test_labels, vocab, seq_size, device)
 
     train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
     test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=True)

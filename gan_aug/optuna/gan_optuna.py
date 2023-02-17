@@ -46,7 +46,7 @@ else:
 def objective(trial: Trial) -> float:
     """Objetive function of one training trail to optimize test accuracy"""
     ## Load data
-    train_dataloader, test_dataloader, seq_size, vocab = create_dataloaders(trial.study.user_attrs['dataset'])
+    train_dataloader, test_dataloader, seq_size, vocab = create_dataloaders(trial.study.user_attrs['dataset'], device=device)
 
     ## Models
     generator = Generator(trial, noise_size=len(vocab), output_size=len(vocab))
