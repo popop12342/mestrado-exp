@@ -25,7 +25,7 @@ num_train_epochs = 30
 noise_size = 100
 batch_size = 8
 epsilon = 1e-8
-EPOCHS = 6
+EPOCHS = 20
 
 if torch.cuda.is_available():
   torch.cuda.manual_seed_all(seed_val)
@@ -47,7 +47,7 @@ def save_stats(stats: List[Dict], filename: str):
         json.dump(stats, json_file)
 
 def train(dataset: str):
-    train_dataloader, test_dataloader, seq_size, vocab = create_dataloaders(dataset)
+    train_dataloader, test_dataloader, seq_size, vocab = create_dataloaders(dataset, device=device)
 
     model = Discriminator(None, input_size=seq_size, vocab_size=len(vocab), padding_idx=vocab['<pad>'])
 
