@@ -129,7 +129,7 @@ def train(dataset: str):
             test_dataloader, model, epoch_i,
             avg_train_loss_d, training_time, training_stats
         )
-        save_stats(training_stats, 'basic-1layer-{}'.format(dataset))
+        save_stats(training_stats, 'basic-4layer-{}'.format(dataset))
 
 def test( test_dataloader: DataLoader, model: Discriminator, epoch_i: int, avg_train_loss_d: float, training_time: int, training_stats: List[Dict]):
     """Perform test step at the end of one epoch"""
