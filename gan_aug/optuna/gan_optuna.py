@@ -276,6 +276,8 @@ if __name__ == '__main__':
     parser = ArgumentParser()
     parser.add_argument('--dataset', default='subj')
     parser.add_argument('--study', help='optuna study name')
+    parser.add_argument('--num_aug', help='augmentation number for expading data with EDA', default=0, type=int)
+    parser.add_argument('--num_layers', help='number of layers for generator and discriminator', default=1)
     args = parser.parse_args()
     study = optuna.create_study(
         storage = 'sqlite:///db.sqlite3',
@@ -284,5 +286,7 @@ if __name__ == '__main__':
         load_if_exists=True
     )
     study.set_user_attr('dataset', args.dataset)
+    study.set_user_attr('num_aug', args.num_aug)
+    study.set_user_attr('num_layers')
     study.optimize(objective, n_trials=1)
     print(f"Best value: {study.best_value} (params: {study.best_params})")

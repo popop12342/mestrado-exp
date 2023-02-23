@@ -12,8 +12,8 @@ Para rodar o experimento execute o notebook [`antonym_test.ipynb`](data/antonym_
 
 O diretório `gan_aug` tem o experimento que utiliza um GAN para realizar
 aumento de dados textuais. No subdiretório `gan_aug/optuna` experimos com ele
-para otiimzação de hiper-parâmetros utilizando a ferramenta Optuna, rodando 
-o arquivo princiapl gan_optuna.py.
+para otimização de hiper-parâmetros utilizando a ferramenta Optuna, rodando
+o arquivo gan_optuna.py.
 
 Os datasets utilizados nesses experimentos deverão estar no diretório
 `gan_aug/data`. Atualmente, suportamos os datasets subj e
