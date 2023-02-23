@@ -9,7 +9,7 @@ class Generator(nn.Module):
         # study gantext
         # self.num_layers = trail.suggest_int('generator_layers', 1, 4)
         # self.hidden_size = trail.suggest_int('generator_hidden_size', 32, 128, 16)
-        self.num_layers = trial.study.user_attr['num_layers']
+        self.num_layers = trial.study.user_attrs['num_layers']
         self.hidden_size = 96
 
         self.gru = nn.GRU(

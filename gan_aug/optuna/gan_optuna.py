@@ -287,6 +287,6 @@ if __name__ == '__main__':
     )
     study.set_user_attr('dataset', args.dataset)
     study.set_user_attr('num_aug', args.num_aug)
-    study.set_user_attr('num_layers')
+    study.set_user_attr('num_layers', args.num_layers)
     study.optimize(objective, n_trials=1)
     print(f"Best value: {study.best_value} (params: {study.best_params})")
