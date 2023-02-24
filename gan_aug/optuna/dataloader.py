@@ -47,8 +47,8 @@ def create_dataloaders(dataset_name: str, batch_size: int = 8, device: str = 'cp
     train_dataset = create_dataset(train_sentences, train_labels, vocab, seq_size, device)
     test_dataset = create_dataset(test_sentences, test_labels, vocab, seq_size, device)
 
-    train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-    test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
+    train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True, drop_last=True)
+    test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=True, drop_last=True)
 
     return train_dataloader, test_dataloader, seq_size, vocab
 
