@@ -278,7 +278,7 @@ if __name__ == '__main__':
     parser.add_argument('--dataset', default='subj')
     parser.add_argument('--study', help='optuna study name')
     parser.add_argument('--num_aug', help='augmentation number for expading data with EDA', default=0, type=int)
-    parser.add_argument('--num_layers', help='number of layers for generator and discriminator', default=1)
+    parser.add_argument('--num_layers', help='number of layers for generator and discriminator', default=1, type=int)
     args = parser.parse_args()
     study = optuna.create_study(
         storage = 'sqlite:///db.sqlite3',
