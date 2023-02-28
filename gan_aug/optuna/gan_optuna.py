@@ -22,10 +22,10 @@ np.random.seed(seed_val)
 torch.manual_seed(seed_val)
 
 ## Params
-print_each_n_step = 100
+print_each_n_step = 50
 num_train_epochs = 30
 noise_size = 100
-batch_size = 32
+batch_size = 8
 epsilon = 1e-8
 
 
@@ -47,7 +47,8 @@ def objective(trial: Trial) -> float:
     """Objetive function of one training trail to optimize test accuracy"""
     ## Load data
     train_dataloader, test_dataloader, seq_size, vocab = create_dataloaders(
-        trial.study.user_attrs['dataset'], batch_size=batch_size, device=device)
+        trial.study.user_attrs['dataset'], batch_size=batch_size, device=device,
+        num_aug=trial.study.user_attrs['num_aug'])
 
     ## Models
     generator = Generator(trial, noise_size=len(vocab), output_size=len(vocab))
