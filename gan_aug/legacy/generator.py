@@ -26,5 +26,6 @@ class Generator(nn.Module):
     
     def forward(self, noise, hidden):
         output, hidden = self.gru(noise, hidden)
-        output = self.softmax(self.out(output))
+        # output = self.softmax(self.out(output))
+        output = self.out(output)
         return output, hidden

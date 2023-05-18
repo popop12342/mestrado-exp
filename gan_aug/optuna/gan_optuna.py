@@ -8,7 +8,7 @@ import optuna
 import torch
 import torch.nn.functional as F
 from data_utils import format_time, save_stats
-from dataloader import create_dataloaders
+from dataloader import create_dataloaders, create_word2vec_dataloaders
 from discriminator import Discriminator
 from generator import Generator
 from optuna.trial import Trial
@@ -46,13 +46,18 @@ else:
 def objective(trial: Trial) -> float:
     """Objetive function of one training trail to optimize test accuracy"""
     ## Load data
-    train_dataloader, test_dataloader, seq_size, vocab = create_dataloaders(
+    train_dataloader, test_dataloader, seq_size, vocab = create_word2vec_dataloaders(
         trial.study.user_attrs['dataset'], batch_size=batch_size, device=device,
         num_aug=trial.study.user_attrs['num_aug'])
 
     ## Models
-    generator = Generator(trial, noise_size=len(vocab), output_size=len(vocab))
-    discriminator = Discriminator(trial, input_size=seq_size, vocab_size=len(vocab), padding_idx=vocab['<pad>'])
+    # generator = Generator(trial, noise_size=len(vocab), output_size=len(vocab))
+    generator = Generator(trial, noise_size=300, output_size=300)
+    discriminator = Discriminator(trial, input_size=300, vocab_size=len(vocab), padding_idx=vocab['<pad>'])
+    print(generator)
+    print('generator parameters: ' + str(sum(p.numel() for p in generator.parameters() if p.requires_grad)))
+    print(discriminator)
+    print('discriminator parameters: ' + str(sum(p.numel() for p in discriminator.parameters() if p.requires_grad)))
 
     if torch.cuda.is_available():
         generator.cuda()
@@ -98,14 +103,14 @@ def objective(trial: Trial) -> float:
                 # Report progress.
                 print('  Batch {:>5,}  of  {:>5,}.    Elapsed: {:}.'.format(step, len(train_dataloader), elapsed))
             
-            noise = torch.zeros(batch_size, seq_size, len(vocab), device=device).uniform_(0, 1)
+            noise = torch.zeros(batch_size, seq_size, 300, device=device).uniform_(0, 1)
             hidden = generator.initHidden(batch_size, device)
             gen_out, hidden = generator(noise, hidden)
-            gen_rep = torch.argmax(gen_out, dim=2)
+            # gen_rep = torch.argmax(gen_out, dim=2)
 
             # Generate the output of the Discriminator for real and fake data.
             # First, we put together the output of the tranformer and the generator
-            disciminator_input = torch.cat([text, gen_rep], dim=0)
+            disciminator_input = torch.cat([text, gen_out], dim=0)
             # Then, we select the output of the disciminator
             features, logits, probs = discriminator(disciminator_input)
 

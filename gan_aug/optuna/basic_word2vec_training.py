@@ -8,7 +8,7 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 from data_utils import format_time
-from dataloader import create_dataloaders
+from dataloader import create_word2vec_dataloaders
 from discriminator import Discriminator
 from sklearn.metrics import f1_score, precision_score, recall_score
 from torch.utils.data import DataLoader
@@ -48,9 +48,11 @@ def save_stats(stats: List[Dict], filename: str):
         json.dump(stats, json_file)
 
 def train(dataset: str, num_aug: int = 0):
-    train_dataloader, test_dataloader, seq_size, vocab = create_dataloaders(dataset, device=device, num_aug=num_aug)
+    train_dataloader, test_dataloader, seq_size, vocab = create_word2vec_dataloaders(dataset, device=device, num_aug=num_aug)
 
-    model = Discriminator(None, input_size=seq_size, vocab_size=len(vocab), padding_idx=vocab['<pad>'])
+    model = Discriminator(None, input_size=300, vocab_size=len(vocab), padding_idx=vocab['<pad>'])
+    print(model)
+    print('discriminator parameters: ' + str(sum(p.numel() for p in model.parameters() if p.requires_grad)))
 
     if torch.cuda.is_available():
         model.cuda()
@@ -144,8 +146,6 @@ def test( test_dataloader: DataLoader, model: Discriminator, epoch_i: int, avg_t
     # during evaluation.
     model.eval()
 
-    # Tracking variables 
-        # Tracking variables 
     # Tracking variables 
     total_test_loss = 0
     all_preds = []

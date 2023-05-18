@@ -11,20 +11,31 @@ class Generator(nn.Module):
         # self.hidden_size = trail.suggest_int('generator_hidden_size', 32, 128, 16)
         self.num_layers = trial.study.user_attrs['num_layers']
         self.hidden_size = 96
+        self.dropout = 0.5
 
         self.gru = nn.GRU(
             input_size=noise_size,
             hidden_size=self.hidden_size,
             num_layers=self.num_layers,
-            batch_first=True
+            batch_first=True,
+            dropout=self.dropout,
+            bidirectional=True
         )
+        # self.lstm = nn.LSTM(
+        #     input_size=noise_size,
+        #     hidden_size=self.hidden_size,
+        #     num_layers=self.num_layers,
+        #     batch_first=True,
+        #     dropout=self.dropout,
+        #     bidirectional=True
+        # )
             
         self.layers = nn.Sequential(*layers)
-        self.out = nn.Linear(self.hidden_size, output_size)
+        self.out = nn.Linear(2*self.hidden_size, output_size)
         self.softmax = nn.LogSoftmax(dim=1)
 
     def initHidden(self, batch_size, device):
-        return torch.zeros(self.num_layers, batch_size, self.hidden_size, device=device)
+        return torch.zeros(2*self.num_layers, batch_size, self.hidden_size, device=device)
     
     def forward(self, noise, hidden):
         output, hidden = self.gru(noise, hidden)
