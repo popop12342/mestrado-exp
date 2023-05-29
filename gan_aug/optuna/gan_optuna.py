@@ -27,6 +27,7 @@ num_train_epochs = 30
 noise_size = 100
 batch_size = 8
 epsilon = 1e-8
+word2vec_len = 300
 
 
 if torch.cuda.is_available():
@@ -52,8 +53,8 @@ def objective(trial: Trial) -> float:
 
     ## Models
     # generator = Generator(trial, noise_size=len(vocab), output_size=len(vocab))
-    generator = Generator(trial, noise_size=300, output_size=300)
-    discriminator = Discriminator(trial, input_size=300, vocab_size=len(vocab), padding_idx=vocab['<pad>'])
+    generator = Generator(trial, noise_size=word2vec_len, output_size=word2vec_len)
+    discriminator = Discriminator(trial, input_size=word2vec_len, vocab_size=len(vocab), padding_idx=vocab['<pad>'])
     print(generator)
     print('generator parameters: ' + str(sum(p.numel() for p in generator.parameters() if p.requires_grad)))
     print(discriminator)
@@ -103,7 +104,7 @@ def objective(trial: Trial) -> float:
                 # Report progress.
                 print('  Batch {:>5,}  of  {:>5,}.    Elapsed: {:}.'.format(step, len(train_dataloader), elapsed))
             
-            noise = torch.zeros(batch_size, seq_size, 300, device=device).uniform_(0, 1)
+            noise = torch.zeros(batch_size, seq_size, word2vec_len, device=device).uniform_(0, 1)
             hidden = generator.initHidden(batch_size, device)
             gen_out, hidden = generator(noise, hidden)
             # gen_rep = torch.argmax(gen_out, dim=2)

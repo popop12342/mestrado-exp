@@ -235,3 +235,4 @@ gan_aug/optuna/stats/*
 gan_aug/img/*
 gan_aug/data/*
 gan_aug/models/*
+gan_aug/word2vec/*

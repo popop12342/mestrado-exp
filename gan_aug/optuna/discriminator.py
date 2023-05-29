@@ -9,7 +9,7 @@ class Discriminator(nn.Module):
         # study gantext
         # num_layers = trail.suggest_int('discriminator_layers', 1, 4)
         # hidden = trail.suggest_int('discriminator_hidden_size', 32, 128, 16)
-        num_layers = 1#trial.study.user_attrs['num_layers']
+        num_layers = trial.study.user_attrs['num_layers']
         hidden = 64
         dropout_rate = 0.1
         linear_size = 32
