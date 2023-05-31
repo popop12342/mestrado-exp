@@ -1,5 +1,7 @@
+import pickle
 import torch
 import torchtext
+from argparse import ArgumentParser
 from typing import List, Tuple
 import numpy as np
 
@@ -119,3 +121,14 @@ def create_word2vec_dataset(sentences, labels, seq_size, device, word2vec, word2
     X = torch.tensor(X, device=device)
     label_ids = torch.tensor(label_ids, device=device)
     return torch.utils.data.TensorDataset(X, label_ids)
+
+
+if __name__ == '__main__':
+    parser = ArgumentParser()
+    parser.add_argument('--dataset', default='subj')
+    parser.add_argument('--pickle_file', default='../data/subj.pkl')
+    args = parser.parse_args()
+
+    dataloaders = create_word2vec_dataloaders(args.dataset)
+    with open(args.pickle_file, 'wb') as pickle_file:
+        pickle.dump(dataloaders, pickle_file)

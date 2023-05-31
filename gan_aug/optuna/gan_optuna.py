@@ -1,4 +1,5 @@
 import random
+import pickle
 import time
 from typing import Dict, List
 from argparse import ArgumentParser
@@ -47,9 +48,14 @@ else:
 def objective(trial: Trial) -> float:
     """Objetive function of one training trail to optimize test accuracy"""
     ## Load data
-    train_dataloader, test_dataloader, seq_size, vocab = create_word2vec_dataloaders(
-        trial.study.user_attrs['dataset'], batch_size=batch_size, device=device,
-        num_aug=trial.study.user_attrs['num_aug'])
+    if trial.study.user_attrs['pickle_data']:
+        print('Getting dataloaders from file')
+        with open(trial.study.user_attrs['pickle_data'], 'rb') as pickle_file:
+            train_dataloader, test_dataloader, seq_size, vocab = pickle.load(pickle_file)
+    else:
+        train_dataloader, test_dataloader, seq_size, vocab = create_word2vec_dataloaders(
+            trial.study.user_attrs['dataset'], batch_size=batch_size, device=device,
+            num_aug=trial.study.user_attrs['num_aug'])
 
     ## Models
     # generator = Generator(trial, noise_size=len(vocab), output_size=len(vocab))
@@ -283,6 +289,7 @@ def test(trail: Trial, test_dataloader: DataLoader, generator: Generator, discri
 if __name__ == '__main__':
     parser = ArgumentParser()
     parser.add_argument('--dataset', default='subj')
+    parser.add_argument('--pickle_data', help='pikled file contained dataloaders to skip data preparation, if not provided will create the dataloaders as usual')
     parser.add_argument('--study', help='optuna study name')
     parser.add_argument('--num_aug', help='augmentation number for expading data with EDA', default=0, type=int)
     parser.add_argument('--num_layers', help='number of layers for generator and discriminator', default=1, type=int)
@@ -294,6 +301,7 @@ if __name__ == '__main__':
         load_if_exists=True
     )
     study.set_user_attr('dataset', args.dataset)
+    study.set_user_attr('pickle_data', args.pickle_data)
     study.set_user_attr('num_aug', args.num_aug)
     study.set_user_attr('num_layers', args.num_layers)
     study.optimize(objective, n_trials=1)
