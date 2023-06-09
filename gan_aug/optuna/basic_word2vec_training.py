@@ -27,6 +27,7 @@ batch_size = 8
 epsilon = 1e-8
 EPOCHS = 20
 lr=5e-5
+word2vec_len = 300
 
 if torch.cuda.is_available():
   torch.cuda.manual_seed_all(seed_val)
@@ -50,7 +51,7 @@ def save_stats(stats: List[Dict], filename: str):
 def train(dataset: str, num_aug: int = 0, num_layers: int = 1):
     train_dataloader, test_dataloader, seq_size, vocab = create_word2vec_dataloaders(dataset, device=device, num_aug=num_aug)
 
-    model = SimpleClassificator(num_layers=num_layers)
+    model = SimpleClassificator(num_layers=num_layers, input_size=word2vec_len)
     print(model)
     print('discriminator parameters: ' + str(sum(p.numel() for p in model.parameters() if p.requires_grad)))
 

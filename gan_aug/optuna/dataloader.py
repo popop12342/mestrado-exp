@@ -112,7 +112,7 @@ def create_word2vec_dataset(sentences, labels, seq_size, device, word2vec, word2
         text = sentences[i]
         label = labels[i]
         label_ids.append(label_pipeline(label))
-        processed_text = tokenizer(text)
+        processed_text = tokenizer(text)[:seq_size]
         offset = seq_size - len(processed_text)
         for j, word in enumerate(processed_text):
             if word in word2vec:

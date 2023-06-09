@@ -9,12 +9,13 @@ import optuna
 import torch
 import torch.nn.functional as F
 from data_utils import format_time, save_stats
-from dataloader import create_dataloaders, create_word2vec_dataloaders
+from dataloader import create_dataloaders, create_word2vec_dataloaders, load_word2vec
 from discriminator import Discriminator
 from generator import Generator
 from optuna.trial import Trial
 from sklearn.metrics import f1_score, precision_score, recall_score
 from torch.utils.data import DataLoader
+from models.word2vec_discriminator import Word2VecDiscriminator
 
 ##Set random values
 seed_val = 42
@@ -53,14 +54,19 @@ def objective(trial: Trial) -> float:
         with open(trial.study.user_attrs['pickle_data'], 'rb') as pickle_file:
             train_dataloader, test_dataloader, seq_size, vocab = pickle.load(pickle_file)
     else:
-        train_dataloader, test_dataloader, seq_size, vocab = create_word2vec_dataloaders(
+        train_dataloader, test_dataloader, seq_size, vocab = create_dataloaders(
             trial.study.user_attrs['dataset'], batch_size=batch_size, device=device,
             num_aug=trial.study.user_attrs['num_aug'])
+        # train_dataloader, test_dataloader, seq_size, vocab = create_word2vec_dataloaders(
+        #     trial.study.user_attrs['dataset'], batch_size=batch_size, device=device,
+        #     num_aug=trial.study.user_attrs['num_aug'])
 
     ## Models
-    # generator = Generator(trial, noise_size=len(vocab), output_size=len(vocab))
-    generator = Generator(trial, noise_size=word2vec_len, output_size=word2vec_len)
-    discriminator = Discriminator(trial, input_size=word2vec_len, vocab_size=len(vocab), padding_idx=vocab['<pad>'])
+    generator = Generator(trial, noise_size=len(vocab), output_size=len(vocab))
+    # generator = Generator(trial, noise_size=word2vec_len, output_size=word2vec_len)
+    # discriminator = Discriminator(trial, input_size=word2vec_len, vocab_size=len(vocab), padding_idx=vocab['<pad>'])
+    word2vec = load_word2vec(vocab)
+    discriminator = Word2VecDiscriminator(trial, word2vec, vocab)
     print(generator)
     print('generator parameters: ' + str(sum(p.numel() for p in generator.parameters() if p.requires_grad)))
     print(discriminator)
@@ -110,14 +116,15 @@ def objective(trial: Trial) -> float:
                 # Report progress.
                 print('  Batch {:>5,}  of  {:>5,}.    Elapsed: {:}.'.format(step, len(train_dataloader), elapsed))
             
-            noise = torch.zeros(batch_size, seq_size, word2vec_len, device=device).uniform_(0, 1)
+            noise = torch.zeros(batch_size, seq_size, len(vocab), device=device).uniform_(0, 1)
             hidden = generator.initHidden(batch_size, device)
             gen_out, hidden = generator(noise, hidden)
-            # gen_rep = torch.argmax(gen_out, dim=2)
+            gen_rep = torch.argmax(gen_out, dim=2) # converting to token
 
             # Generate the output of the Discriminator for real and fake data.
             # First, we put together the output of the tranformer and the generator
-            disciminator_input = torch.cat([text, gen_out], dim=0)
+            # disciminator_input = torch.cat([text, gen_out], dim=0)
+            disciminator_input = torch.cat([text, gen_rep], dim=0)
             # Then, we select the output of the disciminator
             features, logits, probs = discriminator(disciminator_input)
 

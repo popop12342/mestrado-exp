@@ -12,4 +12,4 @@ def create_dataset(increment):
         f.writelines(lines)
 
 if __name__ == '__main__':
-    create_dataset(0.01)
+    create_dataset(0.05)
