@@ -3,11 +3,12 @@ import numpy as np
 import torch.nn as nn
 
 class Word2VecDiscriminator(nn.Module):
-    def __init__(self, trial, word2vec, vocab, input_size=128, num_labels=2):
+    def __init__(self, trial, word2vec, vocab, device, num_labels=2):
         super(Word2VecDiscriminator, self).__init__()
         self.word2vec = word2vec
         self.word2vec_size = 300
         self.vocab = vocab
+        self.device = device
         
         num_layers = trial.study.user_attrs['num_layers']
         hidden = 64
@@ -36,7 +37,7 @@ class Word2VecDiscriminator(nn.Module):
                 token = self.vocab.lookup_token(idx)
                 if token in self.word2vec:
                     X[i, offset+j, :] = self.word2vec[token]
-        X = torch.tensor(X)
+        X = torch.tensor(X, device=self.device)
 
         x, _ = self.layers(X.float())
         x = self.linear(x[:,-1,:])

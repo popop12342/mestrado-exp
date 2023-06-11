@@ -66,7 +66,7 @@ def objective(trial: Trial) -> float:
     # generator = Generator(trial, noise_size=word2vec_len, output_size=word2vec_len)
     # discriminator = Discriminator(trial, input_size=word2vec_len, vocab_size=len(vocab), padding_idx=vocab['<pad>'])
     word2vec = load_word2vec(vocab)
-    discriminator = Word2VecDiscriminator(trial, word2vec, vocab)
+    discriminator = Word2VecDiscriminator(trial, word2vec, vocab, device)
     print(generator)
     print('generator parameters: ' + str(sum(p.numel() for p in generator.parameters() if p.requires_grad)))
     print(discriminator)
