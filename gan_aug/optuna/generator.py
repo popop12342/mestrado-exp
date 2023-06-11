@@ -7,11 +7,12 @@ class Generator(nn.Module):
         layers = []
 
         # study gantext
-        # self.num_layers = trail.suggest_int('generator_layers', 1, 4)
-        # self.hidden_size = trail.suggest_int('generator_hidden_size', 32, 128, 16)
-        self.num_layers = trial.study.user_attrs['num_layers']
-        self.hidden_size = 96
-        self.dropout = 0.5
+        self.num_layers = trial.suggest_int('generator_layers', 1, 8)
+        self.hidden_size = trial.suggest_int('generator_hidden_size', 32, 256, 16)
+        self.dropout = trial.suggest_float('generator_dropout', 0, 0.8)
+        # self.num_layers = trial.study.user_attrs['num_layers']
+        # self.hidden_size = 96
+        # self.dropout = 0.5
 
         self.gru = nn.GRU(
             input_size=noise_size,

@@ -20,14 +20,14 @@ def build_vocab(train_sentences):
     vocab.set_default_index(vocab['<unk>'])
     return vocab
 
-def create_dataset(setnences, labels, vocab, seq_size, device):
+def encode_xy(sentences, labels, vocab, seq_size, device):
     input_ids = []
     label_ids = []
 
     text_pipeline = lambda x: vocab(tokenizer(x))
     label_pipeline = lambda x: int(x)
 
-    for (text, label) in zip(setnences, labels):
+    for (text, label) in zip(sentences, labels):
         label_ids.append(label_pipeline(label))
         processed_text = text_pipeline(text)
         if (seq_size > len(processed_text)):
@@ -35,8 +35,12 @@ def create_dataset(setnences, labels, vocab, seq_size, device):
         else:
             processed_text = processed_text[:seq_size]
         input_ids.append(processed_text)
-    input_ids = torch.tensor(input_ids, dtype=torch.int32, device=device)
-    label_ids = torch.tensor(label_ids, device=device)
+    x = torch.tensor(input_ids, dtype=torch.int32, device=device)
+    y = torch.tensor(label_ids, device=device)
+    return x, y
+
+def create_dataset(sentences, labels, vocab, seq_size, device):
+    input_ids, label_ids = encode_xy(sentences, labels, vocab, seq_size, device)
     return torch.utils.data.TensorDataset(input_ids, label_ids)
 
 
@@ -118,7 +122,7 @@ def create_word2vec_dataset(sentences, labels, seq_size, device, word2vec, word2
             if word in word2vec:
                 X[i, offset+j, :] = word2vec[word]
 
-    X = torch.tensor(X, device=device)
+    X = torch.as_tensor(X, device=device)
     label_ids = torch.tensor(label_ids, device=device)
     return torch.utils.data.TensorDataset(X, label_ids)
 

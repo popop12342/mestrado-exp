@@ -9,13 +9,14 @@ import optuna
 import torch
 import torch.nn.functional as F
 from data_utils import format_time, save_stats
-from dataloader import create_dataloaders, create_word2vec_dataloaders, load_word2vec
+from dataloader import create_dataloaders, create_word2vec_dataloaders, load_word2vec, encode_xy
 from discriminator import Discriminator
 from generator import Generator
 from optuna.trial import Trial
 from sklearn.metrics import f1_score, precision_score, recall_score
 from torch.utils.data import DataLoader
 from models.word2vec_discriminator import Word2VecDiscriminator
+from eda import eda
 
 ##Set random values
 seed_val = 42
@@ -106,7 +107,6 @@ def objective(trial: Trial) -> float:
 
         # For each batch of training data...
         for step, (text, label) in enumerate(train_dataloader):
-            # enumerate () method adds a counter to an iterable and returns it in a form of enumerate object.
             
             # Progress update every print_each_n_step batches.
             if step % print_each_n_step == 0 and not step == 0:
@@ -121,6 +121,19 @@ def objective(trial: Trial) -> float:
             gen_out, hidden = generator(noise, hidden)
             gen_rep = torch.argmax(gen_out, dim=2) # converting to token
 
+            # augment text and generator fake data
+            train_aug = trial.study.user_attrs['train_aug']
+            if train_aug > 0:
+                text, label, gen_rep, _ = augment_real_fake_tensors(
+                    text=text,
+                    label=label,
+                    gen_rep=gen_rep,
+                    vocab=vocab,
+                    train_aug=train_aug,
+                    seq_size=seq_size
+                )
+
+
             # Generate the output of the Discriminator for real and fake data.
             # First, we put together the output of the tranformer and the generator
             # disciminator_input = torch.cat([text, gen_out], dim=0)
@@ -130,15 +143,16 @@ def objective(trial: Trial) -> float:
 
             # Finally, we separate the discriminator's output for the real and fake
             # data
-            features_list = torch.split(features, batch_size)
+            split_size = batch_size * (train_aug + 1)
+            features_list = torch.split(features, split_size)
             #Splits the tensor into chunks. Each chunk is a view of the original tensor
             D_real_features = features_list[0]
             D_fake_features = features_list[1]
             
-            logits_list = torch.split(logits, batch_size)
+            logits_list = torch.split(logits, split_size)
             D_real_logits = logits_list[0]
             
-            probs_list = torch.split(probs, batch_size)
+            probs_list = torch.split(probs, split_size)
             D_real_probs = probs_list[0]
             D_fake_probs = probs_list[1]
 
@@ -292,6 +306,25 @@ def test(trail: Trial, test_dataloader: DataLoader, generator: Generator, discri
     trail.report(test_accuracy, step=epoch_i+1)
     return test_accuracy
 
+def augment_real_fake_tensors(text, label, gen_rep, vocab, train_aug, seq_size):
+    # decode sentences
+    sentences = [vocab.lookup_tokens(x.tolist()) for x in text]
+    fake_sentences = [vocab.lookup_tokens(x.tolist()) for x in gen_rep]
+    # apply augmentation
+    augmented_sentences = []
+    augmented_labels = []
+    fake_augmented_sentences = []
+    for sentence, l in zip(sentences, label):
+        sentence = ' '.join(sentence)
+        augmented_sentences.extend(eda(sentence, num_aug=train_aug))
+        augmented_labels.extend([l] * (train_aug + 1))
+    for sentence in fake_sentences:
+        sentence = ' '.join(sentence)
+        fake_augmented_sentences.extend(eda(sentence, num_aug=train_aug))
+    # re-enconde sentences
+    x_real, y_real = encode_xy(augmented_sentences, augmented_labels, vocab, seq_size, device)
+    x_fake, y_fake = encode_xy(fake_augmented_sentences, [0]*len(fake_augmented_sentences), vocab, seq_size, device)
+    return x_real, y_real, x_fake, y_fake
 
 if __name__ == '__main__':
     parser = ArgumentParser()
@@ -300,6 +333,7 @@ if __name__ == '__main__':
     parser.add_argument('--study', help='optuna study name')
     parser.add_argument('--num_aug', help='augmentation number for expading data with EDA', default=0, type=int)
     parser.add_argument('--num_layers', help='number of layers for generator and discriminator', default=1, type=int)
+    parser.add_argument('--train_aug', help='augmentation rate for expading data inside training', default=0, type=int)
     args = parser.parse_args()
     study = optuna.create_study(
         storage = 'sqlite:///db.sqlite3',
@@ -310,6 +344,7 @@ if __name__ == '__main__':
     study.set_user_attr('dataset', args.dataset)
     study.set_user_attr('pickle_data', args.pickle_data)
     study.set_user_attr('num_aug', args.num_aug)
+    study.set_user_attr('train_aug', args.train_aug)
     study.set_user_attr('num_layers', args.num_layers)
-    study.optimize(objective, n_trials=1)
+    study.optimize(objective, n_trials=10)
     print(f"Best value: {study.best_value} (params: {study.best_params})")

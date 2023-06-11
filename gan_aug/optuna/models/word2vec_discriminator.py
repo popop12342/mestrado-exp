@@ -10,9 +10,9 @@ class Word2VecDiscriminator(nn.Module):
         self.vocab = vocab
         self.device = device
         
-        num_layers = trial.study.user_attrs['num_layers']
-        hidden = 64
-        dropout_rate = 0.1
+        num_layers = trial.suggest_int('discriminator_layers', 1, 8)
+        hidden = trial.suggest_int('discrminator_hidden_size', 32, 256, 16)
+        dropout = trial.suggest_float('discriminator_dropout', 0, 0.8)
         linear_size = 32
 
         self.layers = nn.LSTM(
@@ -20,7 +20,7 @@ class Word2VecDiscriminator(nn.Module):
             hidden_size=hidden,
             num_layers=num_layers,
             batch_first=True,
-            dropout=dropout_rate,
+            dropout=dropout,
             bidirectional=True
         )
         self.linear = nn.Linear(2*hidden, linear_size)
@@ -37,7 +37,7 @@ class Word2VecDiscriminator(nn.Module):
                 token = self.vocab.lookup_token(idx)
                 if token in self.word2vec:
                     X[i, offset+j, :] = self.word2vec[token]
-        X = torch.tensor(X, device=self.device)
+        X = torch.as_tensor(X, device=self.device)
 
         x, _ = self.layers(X.float())
         x = self.linear(x[:,-1,:])
