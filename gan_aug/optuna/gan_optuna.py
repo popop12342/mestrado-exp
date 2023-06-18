@@ -179,8 +179,6 @@ def objective(trial: Trial) -> float:
             label2one_hot = torch.nn.functional.one_hot(label, len(labels))
             per_example_loss = -torch.sum(label2one_hot * log_probs, dim=-1)
             per_example_loss = torch.masked_select(per_example_loss, label_mask)
-            print(label_mask)
-            print(per_example_loss.size())
             labeled_example_count = per_example_loss.type(torch.float32).numel()
 
             # It may be the case that a batch does not contain labeled examples, 
