@@ -15,7 +15,10 @@ from generator import Generator
 from optuna.trial import Trial
 from sklearn.metrics import f1_score, precision_score, recall_score
 from torch.utils.data import DataLoader
-from models.word2vec_discriminator import Word2VecDiscriminator
+from models.discriminator import Discriminator
+from models.trial_discrminator import TrialDiscriminator
+from models.generator import Generator
+from models.trial_generator import TrialGenerator
 from eda import eda
 
 ##Set random values
@@ -64,11 +67,15 @@ def objective(trial: Trial) -> float:
         #     num_aug=trial.study.user_attrs['num_aug'])
 
     ## Models
-    generator = Generator(trial, noise_size=len(vocab), output_size=len(vocab))
-    # generator = Generator(trial, noise_size=word2vec_len, output_size=word2vec_len)
-    # discriminator = Discriminator(trial, input_size=word2vec_len, vocab_size=len(vocab), padding_idx=vocab['<pad>'])
+    num_layers = trial.study.user_attrs['num_layers']
     word2vec = load_word2vec(vocab)
-    discriminator = Word2VecDiscriminator(trial, word2vec, vocab, device, num_labels=len(labels))
+    if trial.study.user_attrs['num_layers']:
+        discriminator = Discriminator(num_layers, word2vec, vocab, device, num_labels=len(labels))
+        generator = Generator(num_layers, noise_size=len(vocab), output_size=len(vocab))
+    else:
+        print('Using optuna trial models')
+        discriminator = TrialDiscriminator(trial, word2vec, vocab, device, num_labels=len(labels))
+        generator = TrialGenerator(trial, noise_size=len(vocab), output_size=len(vocab))
     print(generator)
     print('generator parameters: ' + str(sum(p.numel() for p in generator.parameters() if p.requires_grad)))
     print(discriminator)

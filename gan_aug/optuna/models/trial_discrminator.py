@@ -2,9 +2,9 @@ import torch
 import numpy as np
 import torch.nn as nn
 
-class Word2VecDiscriminator(nn.Module):
+class TrialDiscriminator(nn.Module):
     def __init__(self, trial, word2vec, vocab, device, num_labels=2):
-        super(Word2VecDiscriminator, self).__init__()
+        super(TrialDiscriminator, self).__init__()
         self.word2vec = word2vec
         self.word2vec_size = 300
         self.vocab = vocab

@@ -2,17 +2,13 @@ import torch
 import torch.nn as nn
 
 class Generator(nn.Module):
-    def __init__(self, trial, noise_size=100, output_size=128):
+    def __init__(self, num_layers, noise_size=100, output_size=128, hidden_size=64, dropout=0.1):
         super(Generator, self).__init__()
         layers = []
 
-        # study gantext
-        self.num_layers = trial.suggest_int('generator_layers', 1, 8)
-        self.hidden_size = trial.suggest_int('generator_hidden_size', 32, 256, 16)
-        self.dropout = trial.suggest_float('generator_dropout', 0, 0.8)
-        # self.num_layers = trial.study.user_attrs['num_layers']
-        # self.hidden_size = 96
-        # self.dropout = 0.5
+        self.num_layers = num_layers
+        self.hidden_size = hidden_size
+        self.dropout = dropout
 
         self.gru = nn.GRU(
             input_size=noise_size,
@@ -22,14 +18,6 @@ class Generator(nn.Module):
             dropout=self.dropout,
             bidirectional=True
         )
-        # self.lstm = nn.LSTM(
-        #     input_size=noise_size,
-        #     hidden_size=self.hidden_size,
-        #     num_layers=self.num_layers,
-        #     batch_first=True,
-        #     dropout=self.dropout,
-        #     bidirectional=True
-        # )
             
         self.layers = nn.Sequential(*layers)
         self.out = nn.Linear(2*self.hidden_size, output_size)
