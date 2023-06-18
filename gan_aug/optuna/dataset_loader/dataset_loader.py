@@ -7,7 +7,7 @@ def load_dataset(dataset_name: str) -> Tuple[List[str], List[str], List[str], Li
     if dataset_name.startswith('subj'):
         fraction = None
         if '_' in dataset_name:
-            fraction = dataset_name.split('_')[1]
+            fraction = '_'.join(dataset_name.split('_')[1:])
         return SUBJDatasetLoader.load(fraction)
     elif dataset_name == 'aclImdb':
         return AclImdbDatasetLoader.load()

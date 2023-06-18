@@ -23,12 +23,14 @@ def build_vocab(train_sentences):
 def encode_xy(sentences, labels, vocab, seq_size, device):
     input_ids = []
     label_ids = []
+    label_mask = []
 
     text_pipeline = lambda x: vocab(tokenizer(x))
-    label_pipeline = lambda x: int(x)
+    label_pipeline = lambda x: int(x) if x != 'UNK' else 0
 
     for (text, label) in zip(sentences, labels):
         label_ids.append(label_pipeline(label))
+        label_mask.append(label == 'UNK')
         processed_text = text_pipeline(text)
         if (seq_size > len(processed_text)):
             processed_text = [vocab['<pad>']] * (seq_size - len(processed_text)) + processed_text
@@ -37,11 +39,12 @@ def encode_xy(sentences, labels, vocab, seq_size, device):
         input_ids.append(processed_text)
     x = torch.tensor(input_ids, dtype=torch.int32, device=device)
     y = torch.tensor(label_ids, device=device)
-    return x, y
+    mask_y = torch.tensor(label_mask, device=device)
+    return x, y, mask_y
 
 def create_dataset(sentences, labels, vocab, seq_size, device):
-    input_ids, label_ids = encode_xy(sentences, labels, vocab, seq_size, device)
-    return torch.utils.data.TensorDataset(input_ids, label_ids)
+    input_ids, label_ids, label_mask = encode_xy(sentences, labels, vocab, seq_size, device)
+    return torch.utils.data.TensorDataset(input_ids, label_ids, label_mask)
 
 
 def create_dataloaders(dataset_name: str, batch_size: int = 8, device: str = 'cpu', num_aug: int = 0):

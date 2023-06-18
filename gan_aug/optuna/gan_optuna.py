@@ -31,6 +31,7 @@ noise_size = 100
 batch_size = 8
 epsilon = 1e-8
 word2vec_len = 300
+labels = ['UNK', '0', '1']
 
 
 if torch.cuda.is_available():
@@ -67,7 +68,7 @@ def objective(trial: Trial) -> float:
     # generator = Generator(trial, noise_size=word2vec_len, output_size=word2vec_len)
     # discriminator = Discriminator(trial, input_size=word2vec_len, vocab_size=len(vocab), padding_idx=vocab['<pad>'])
     word2vec = load_word2vec(vocab)
-    discriminator = Word2VecDiscriminator(trial, word2vec, vocab, device)
+    discriminator = Word2VecDiscriminator(trial, word2vec, vocab, device, num_labels=len(labels))
     print(generator)
     print('generator parameters: ' + str(sum(p.numel() for p in generator.parameters() if p.requires_grad)))
     print(discriminator)
@@ -106,7 +107,7 @@ def objective(trial: Trial) -> float:
         discriminator.train()
 
         # For each batch of training data...
-        for step, (text, label) in enumerate(train_dataloader):
+        for step, (text, label, label_mask) in enumerate(train_dataloader):
             
             # Progress update every print_each_n_step batches.
             if step % print_each_n_step == 0 and not step == 0:
@@ -170,9 +171,9 @@ def objective(trial: Trial) -> float:
             
             # The discriminator provides an output for labeled and unlabeled real data
             # so the loss evaluated for unlabeled data is ignored (masked)
-            label2one_hot = torch.nn.functional.one_hot(label, 2)
+            label2one_hot = torch.nn.functional.one_hot(label, len(labels))
             per_example_loss = -torch.sum(label2one_hot * log_probs, dim=-1)
-            # per_example_loss = torch.masked_select(per_example_loss, offset.to(device))
+            per_example_loss = torch.masked_select(per_example_loss, label_mask)
             labeled_example_count = per_example_loss.type(torch.float32).numel()
 
             # It may be the case that a batch does not contain labeled examples, 

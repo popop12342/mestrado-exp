@@ -1,3 +1,5 @@
 optuna
 torch
+torchtext
 scikit-learn
+nltk
