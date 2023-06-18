@@ -28,4 +28,4 @@ def create_unlabeled_dataset(increment: float):
         f.writelines(unlabeled_lines)
 
 if __name__ == '__main__':
-    create_unlabeled_dataset(0.01)
+    create_unlabeled_dataset(0.05)

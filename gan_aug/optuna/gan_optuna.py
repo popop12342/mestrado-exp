@@ -10,8 +10,6 @@ import torch
 import torch.nn.functional as F
 from data_utils import format_time, save_stats
 from dataloader import create_dataloaders, create_word2vec_dataloaders, load_word2vec, encode_xy
-from discriminator import Discriminator
-from generator import Generator
 from optuna.trial import Trial
 from sklearn.metrics import f1_score, precision_score, recall_score
 from torch.utils.data import DataLoader
@@ -181,6 +179,8 @@ def objective(trial: Trial) -> float:
             label2one_hot = torch.nn.functional.one_hot(label, len(labels))
             per_example_loss = -torch.sum(label2one_hot * log_probs, dim=-1)
             per_example_loss = torch.masked_select(per_example_loss, label_mask)
+            print(label_mask)
+            print(per_example_loss.size())
             labeled_example_count = per_example_loss.type(torch.float32).numel()
 
             # It may be the case that a batch does not contain labeled examples, 
@@ -269,7 +269,7 @@ def test(trail: Trial, test_dataloader: DataLoader, generator: Generator, discri
     nll_loss = torch.nn.CrossEntropyLoss(ignore_index=-1)
 
     # Evaluate data for one epoch
-    for text, label in test_dataloader:
+    for text, label, _ in test_dataloader:
         # Tell pytorch not to bother with constructing the compute graph during
         # the forward pass, since this is only needed for backprop (training).
         with torch.no_grad():

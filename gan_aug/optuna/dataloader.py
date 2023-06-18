@@ -30,7 +30,7 @@ def encode_xy(sentences, labels, vocab, seq_size, device):
 
     for (text, label) in zip(sentences, labels):
         label_ids.append(label_pipeline(label))
-        label_mask.append(label == 'UNK')
+        label_mask.append(label != 'UNK')
         processed_text = text_pipeline(text)
         if (seq_size > len(processed_text)):
             processed_text = [vocab['<pad>']] * (seq_size - len(processed_text)) + processed_text

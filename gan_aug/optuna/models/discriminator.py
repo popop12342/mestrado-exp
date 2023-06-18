@@ -4,7 +4,7 @@ import torch.nn as nn
 
 class Discriminator(nn.Module):
     def __init__(self, num_layers, word2vec, vocab, device, num_labels=2, hidden_size=64, dropout=0.1):
-        super(Discrminator, self).__init__()
+        super(Discriminator, self).__init__()
         self.word2vec = word2vec
         self.word2vec_size = 300
         self.vocab = vocab
