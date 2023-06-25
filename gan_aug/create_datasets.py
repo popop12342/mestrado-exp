@@ -45,4 +45,6 @@ def create_unlabeled_dataset_eda():
         f.writelines(augmented_lines)
 
 if __name__ == '__main__':
-    create_unlabeled_dataset_eda()
+    for i in [0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]:
+        create_dataset(i)
+        create_unlabeled_dataset(i)

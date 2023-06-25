@@ -27,7 +27,7 @@ torch.manual_seed(seed_val)
 
 ## Params
 print_each_n_step = 50
-num_train_epochs = 30
+num_train_epochs = 10
 noise_size = 100
 batch_size = 8
 epsilon = 1e-8
@@ -50,7 +50,7 @@ else:
     device = torch.device("cpu")
 
 def objective(trial: Trial) -> float:
-    """Objetive function of one training trail to optimize test accuracy"""
+    """Objetive function of one training trial to optimize test accuracy"""
     ## Load data
     if trial.study.user_attrs['pickle_data']:
         print('Getting dataloaders from file')
@@ -94,7 +94,6 @@ def objective(trial: Trial) -> float:
 
 
     # For each epoch...
-    num_train_epochs = 20
     for epoch_i in range(0, num_train_epochs):
         print("")
         print('======== Epoch {:} / {:} ========'.format(epoch_i + 1, num_train_epochs))
@@ -243,7 +242,7 @@ def objective(trial: Trial) -> float:
     
     return test_accuracy
 
-def test(trail: Trial, test_dataloader: DataLoader, generator: Generator, discriminator: Discriminator, epoch_i: int, avg_train_loss_g: float, avg_train_loss_d: float, training_time: int, training_stats: List[Dict]):
+def test(trial: Trial, test_dataloader: DataLoader, generator: Generator, discriminator: Discriminator, epoch_i: int, avg_train_loss_g: float, avg_train_loss_d: float, training_time: int, training_stats: List[Dict]):
     """Perform test step at the end of one epoch"""
 
     print("")
@@ -309,7 +308,7 @@ def test(trail: Trial, test_dataloader: DataLoader, generator: Generator, discri
         'Training Time': training_time,
         'Test Time': test_time
     })
-    trail.report(test_accuracy, step=epoch_i+1)
+    trial.report(test_accuracy, step=epoch_i+1)
     return test_accuracy
 
 def augment_real_fake_tensors(text, label, gen_rep, vocab, train_aug, seq_size):

@@ -28,7 +28,7 @@ class Discriminator(nn.Module):
 
     def forward(self, text):
         batch_size, seq_size = text.size()
-        X = np.zeros((batch_size, seq_size, self.word2vec_size))
+        X = np.zeros((batch_size, seq_size, self.word2vec_size), dtype=np.float32)
         for i, sentence in enumerate(text):
             offset = seq_size - len(sentence)
             for j, idx in enumerate(sentence):
