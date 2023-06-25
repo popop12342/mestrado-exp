@@ -130,7 +130,7 @@ def objective(trial: Trial) -> float:
             # augment text and generator fake data
             train_aug = trial.study.user_attrs['train_aug']
             if train_aug > 0:
-                text, label, gen_rep, _ = augment_real_fake_tensors(
+                text, label, label_mask, gen_rep, _ = augment_real_fake_tensors(
                     text=text,
                     label=label,
                     gen_rep=gen_rep,
@@ -328,9 +328,9 @@ def augment_real_fake_tensors(text, label, gen_rep, vocab, train_aug, seq_size):
         sentence = ' '.join(sentence)
         fake_augmented_sentences.extend(eda(sentence, num_aug=train_aug))
     # re-enconde sentences
-    x_real, y_real = encode_xy(augmented_sentences, augmented_labels, vocab, seq_size, device)
-    x_fake, y_fake = encode_xy(fake_augmented_sentences, [0]*len(fake_augmented_sentences), vocab, seq_size, device)
-    return x_real, y_real, x_fake, y_fake
+    x_real, y_real, y_mask = encode_xy(augmented_sentences, augmented_labels, vocab, seq_size, device)
+    x_fake, y_fake, _  = encode_xy(fake_augmented_sentences, [0]*len(fake_augmented_sentences), vocab, seq_size, device)
+    return x_real, y_real, y_mask, x_fake, y_fake
 
 if __name__ == '__main__':
     parser = ArgumentParser()

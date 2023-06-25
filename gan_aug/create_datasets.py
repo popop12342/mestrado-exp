@@ -1,5 +1,6 @@
 import os
 import random
+from core.eda import eda
 
 def create_dataset(increment: float):
     lines = open('data/subj/train_orig.txt').readlines()
@@ -27,5 +28,21 @@ def create_unlabeled_dataset(increment: float):
         f.writelines(train_lines)
         f.writelines(unlabeled_lines)
 
+def create_unlabeled_dataset_eda():
+    lines = open('data/subj/train_orig.txt').readlines()
+    random.shuffle(lines)
+
+    augmented_lines = []
+    for line in lines:
+        _, sentence = line.split('\t')
+        aug_sentences = eda(sentence)
+        for aug_sen in aug_sentences:
+            augmented_lines.append('UNK\t' + aug_sen + '\n')
+
+    filename = 'train_unk_100_eda.txt'
+    with open(os.path.join('data/subj', filename), 'w') as f:
+        f.writelines(lines)
+        f.writelines(augmented_lines)
+
 if __name__ == '__main__':
-    create_unlabeled_dataset(0.05)
+    create_unlabeled_dataset_eda()
