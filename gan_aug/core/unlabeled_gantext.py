@@ -35,15 +35,15 @@ def run_one_experiment(dataset: str, trial_id: int) -> float:
 def run_experiments():
     results = {'labeled': {}, 'unlabeled': {}}
     trial_count = 0
-    for ds in datasets:
-        acc = run_one_experiment(ds, trial_count)
-        trial_count += 1
-        results['labeled'][ds] = acc
-        print('Endend experiment for dataset ' + ds + ' with accuracy ' + str(acc))
     for ds in unlabeled_dataset:
         acc = run_one_experiment(ds, trial_count)
         trial_count += 1
         results['unlabeled'][ds] = acc
+        print('Endend experiment for dataset ' + ds + ' with accuracy ' + str(acc))
+    for ds in datasets:
+        acc = run_one_experiment(ds, trial_count)
+        trial_count += 1
+        results['labeled'][ds] = acc
         print('Endend experiment for dataset ' + ds + ' with accuracy ' + str(acc))
     
     with open('stats/subj/unlabeled/label-vs-unlabel.json', 'w') as f:

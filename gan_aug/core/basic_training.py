@@ -9,7 +9,7 @@ import torch
 import torch.nn.functional as F
 from data_utils import format_time
 from dataloader import create_dataloaders
-from discriminator import Discriminator
+from models.simple_classificator import SimpleClassificator
 from sklearn.metrics import f1_score, precision_score, recall_score
 from torch.utils.data import DataLoader
 
@@ -50,7 +50,7 @@ def save_stats(stats: List[Dict], filename: str):
 def train(dataset: str, num_aug: int = 0):
     train_dataloader, test_dataloader, seq_size, vocab = create_dataloaders(dataset, device=device, num_aug=num_aug)
 
-    model = Discriminator(None, input_size=seq_size, vocab_size=len(vocab), padding_idx=vocab['<pad>'])
+    model = SimpleClassificator(num_layers=1, input_size=seq_size, vocab_size=len(vocab), padding_idx=vocab['<pad>'])
 
     if torch.cuda.is_available():
         model.cuda()
@@ -132,7 +132,7 @@ def train(dataset: str, num_aug: int = 0):
         )
         save_stats(training_stats, 'basic-1layer-{}-1aug'.format(dataset))
 
-def test( test_dataloader: DataLoader, model: Discriminator, epoch_i: int, avg_train_loss_d: float, training_time: int, training_stats: List[Dict]):
+def test( test_dataloader: DataLoader, model: SimpleClassificator, epoch_i: int, avg_train_loss_d: float, training_time: int, training_stats: List[Dict]):
     """Perform test step at the end of one epoch"""
 
     print("")

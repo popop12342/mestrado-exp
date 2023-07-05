@@ -69,11 +69,11 @@ def objective(trial: Trial) -> float:
     word2vec = load_word2vec(vocab)
     if trial.study.user_attrs['num_layers']:
         discriminator = Discriminator(num_layers, word2vec, vocab, device, num_labels=len(labels))
-        generator = Generator(num_layers, noise_size=len(vocab), output_size=len(vocab))
+        generator = Generator(num_layers, noise_size=noise_size, output_size=len(vocab))
     else:
         print('Using optuna trial models')
         discriminator = TrialDiscriminator(trial, word2vec, vocab, device, num_labels=len(labels))
-        generator = TrialGenerator(trial, noise_size=len(vocab), output_size=len(vocab))
+        generator = TrialGenerator(trial, noise_size=noise_size, output_size=len(vocab))
     print(generator)
     print('generator parameters: ' + str(sum(p.numel() for p in generator.parameters() if p.requires_grad)))
     print(discriminator)
@@ -121,7 +121,7 @@ def objective(trial: Trial) -> float:
                 # Report progress.
                 print('  Batch {:>5,}  of  {:>5,}.    Elapsed: {:}.'.format(step, len(train_dataloader), elapsed))
             
-            noise = torch.zeros(batch_size, seq_size, len(vocab), device=device).uniform_(0, 1)
+            noise = torch.zeros(batch_size, seq_size, noise_size, device=device).uniform_(0, 1)
             hidden = generator.initHidden(batch_size, device)
             gen_out, hidden = generator(noise, hidden)
             gen_rep = torch.argmax(gen_out, dim=2) # converting to token
@@ -302,9 +302,9 @@ def test(trial: Trial, test_dataloader: DataLoader, generator: Generator, discri
         'Training Loss discriminator': avg_train_loss_d,
         'Valid. Loss': avg_test_loss,
         'Valid. Accur.': test_accuracy,
-        'Valid. F1': f1_score(all_labels_ids, all_preds),
-        'Valid. Recall': recall_score(all_labels_ids, all_preds),
-        'Valid. Precision': precision_score(all_labels_ids, all_preds),
+        # 'Valid. F1': f1_score(all_labels_ids, all_preds),
+        # 'Valid. Recall': recall_score(all_labels_ids, all_preds),
+        # 'Valid. Precision': precision_score(all_labels_ids, all_preds),
         'Training Time': training_time,
         'Test Time': test_time
     })
