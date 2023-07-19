@@ -11,7 +11,7 @@ class Discriminator(nn.Module):
         self.device = device
         self.hidden = hidden_size
         self.dropout = dropout
-        self.linear_size = 32
+        self.linear_size =hidden_size
 
         self.layers = nn.LSTM(
             input_size=self.word2vec_size,

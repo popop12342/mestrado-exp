@@ -9,7 +9,7 @@ from dataset_loader.dataset_loader import load_dataset
 from eda import eda
 
 tokenizer = torchtext.data.utils.get_tokenizer('basic_english')
-MAX_SEQ_SIZE = 200
+MAX_SEQ_SIZE = 64
 
 def build_vocab(train_sentences):
     def yield_tokens(sentences):

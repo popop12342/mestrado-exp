@@ -68,8 +68,9 @@ def objective(trial: Trial) -> float:
     num_layers = trial.study.user_attrs['num_layers']
     word2vec = load_word2vec(vocab)
     if trial.study.user_attrs['num_layers']:
-        discriminator = Discriminator(num_layers, word2vec, vocab, device, num_labels=len(labels))
-        generator = Generator(num_layers, noise_size=noise_size, output_size=len(vocab))
+        hidden_size = trial.study.user_attrs['hidden_size']
+        discriminator = Discriminator(num_layers, word2vec, vocab, device, num_labels=len(labels), hidden_size=hidden_size)
+        generator = Generator(num_layers, noise_size=noise_size, output_size=len(vocab), hidden_size=hidden_size)
     else:
         print('Using optuna trial models')
         discriminator = TrialDiscriminator(trial, word2vec, vocab, device, num_labels=len(labels))
@@ -137,7 +138,6 @@ def objective(trial: Trial) -> float:
                     train_aug=train_aug,
                     seq_size=seq_size
                 )
-
 
             # Generate the output of the Discriminator for real and fake data.
             # First, we put together the output of the tranformer and the generator
@@ -338,6 +338,7 @@ if __name__ == '__main__':
     parser.add_argument('--study', help='optuna study name')
     parser.add_argument('--num_aug', help='augmentation number for expading data with EDA', default=0, type=int)
     parser.add_argument('--num_layers', help='number of layers for generator and discriminator', default=1, type=int)
+    parser.add_argument('--hidden_size', help='hidden size for generator and discriminator', default=1, type=int)
     parser.add_argument('--train_aug', help='augmentation rate for expading data inside training', default=0, type=int)
     args = parser.parse_args()
     study = optuna.create_study(
@@ -351,5 +352,6 @@ if __name__ == '__main__':
     study.set_user_attr('num_aug', args.num_aug)
     study.set_user_attr('train_aug', args.train_aug)
     study.set_user_attr('num_layers', args.num_layers)
-    study.optimize(objective, n_trials=10)
+    study.set_user_attr('hidden_size', args.hidden_size)
+    study.optimize(objective, n_trials=1)
     print(f"Best value: {study.best_value} (params: {study.best_params})")
