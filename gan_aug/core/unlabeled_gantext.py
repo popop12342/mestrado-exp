@@ -29,6 +29,7 @@ def run_one_experiment(dataset: str, trial_id: int) -> float:
     study.user_attrs['num_layers'] = 1
     study.user_attrs['num_aug'] = 0
     study.user_attrs['train_aug'] = 0
+    study.user_attrs['hidden_size'] = 512
     trial = SingleTrial(study, trial_id=trial_id)
     return objective(trial)
 
@@ -46,7 +47,7 @@ def run_experiments():
         results['labeled'][ds] = acc
         print('Endend experiment for dataset ' + ds + ' with accuracy ' + str(acc))
     
-    with open('stats/subj/unlabeled/label-vs-unlabel.json', 'w') as f:
+    with open('stats/subj/unlabeled/label-vs-unlabel-2.json', 'w') as f:
         json.dump(results, f)
 
 

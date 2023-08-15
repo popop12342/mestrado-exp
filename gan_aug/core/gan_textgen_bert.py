@@ -9,15 +9,16 @@ import optuna
 import torch
 import torch.nn.functional as F
 from data_utils import format_time, save_stats
-from dataloader import create_dataloaders, create_word2vec_dataloaders, load_word2vec, encode_xy
+from dataloader import create_bert_dataloaders
 from optuna.trial import Trial
 from sklearn.metrics import f1_score, precision_score, recall_score
 from torch.utils.data import DataLoader
-from models.discriminator import Discriminator
+from models.bert_discriminator import BERTDiscriminator
 from models.trial_discrminator import TrialDiscriminator
 from models.generator import Generator
 from models.trial_generator import TrialGenerator
 from eda import eda
+from transformers import AutoModel, AutoTokenizer
 
 ##Set random values
 seed_val = 42
@@ -31,11 +32,12 @@ num_train_epochs = 10
 noise_size = 100
 batch_size = 8
 epsilon = 1e-8
-word2vec_len = 300
 # labels = ['UNK', '0', '1']
 labels = ['0', '1']
 
-
+model_name = "bert-base-cased"
+tokenizer = AutoTokenizer.from_pretrained(model_name)
+        
 if torch.cuda.is_available():
   torch.cuda.manual_seed_all(seed_val)
 
@@ -50,6 +52,7 @@ else:
     print('No GPU available, using the CPU instead.')
     device = torch.device("cpu")
 
+
 def objective(trial: Trial) -> float:
     """Objetive function of one training trial to optimize test accuracy"""
     ## Load data
@@ -58,24 +61,16 @@ def objective(trial: Trial) -> float:
         with open(trial.study.user_attrs['pickle_data'], 'rb') as pickle_file:
             train_dataloader, test_dataloader, seq_size, vocab = pickle.load(pickle_file)
     else:
-        train_dataloader, test_dataloader, seq_size, vocab = create_dataloaders(
+        train_dataloader, test_dataloader, seq_size = create_bert_dataloaders(
             trial.study.user_attrs['dataset'], batch_size=batch_size, device=device,
-            num_aug=trial.study.user_attrs['num_aug'])
-        # train_dataloader, test_dataloader, seq_size, vocab = create_word2vec_dataloaders(
-        #     trial.study.user_attrs['dataset'], batch_size=batch_size, device=device,
-        #     num_aug=trial.study.user_attrs['num_aug'])
+            tokenizer=tokenizer)
 
     ## Models
     num_layers = trial.study.user_attrs['num_layers']
-    word2vec = load_word2vec(vocab)
     if trial.study.user_attrs['num_layers']:
         hidden_size = trial.study.user_attrs['hidden_size']
-        discriminator = Discriminator(num_layers, word2vec, vocab, device, num_labels=len(labels), hidden_size=hidden_size)
-        generator = Generator(num_layers, noise_size=noise_size, output_size=len(vocab), hidden_size=hidden_size)
-    else:
-        print('Using optuna trial models')
-        discriminator = TrialDiscriminator(trial, word2vec, vocab, device, num_labels=len(labels))
-        generator = TrialGenerator(trial, noise_size=noise_size, output_size=len(vocab))
+        discriminator = BERTDiscriminator(num_layers, seq_size, device, num_labels=len(labels))
+        generator = Generator(num_layers=num_layers, noise_size=noise_size, output_size=tokenizer.vocab_size, hidden_size=hidden_size)
     print(generator)
     print('generator parameters: ' + str(sum(p.numel() for p in generator.parameters() if p.requires_grad)))
     print(discriminator)
@@ -114,7 +109,20 @@ def objective(trial: Trial) -> float:
         discriminator.train()
 
         # For each batch of training data...
-        for step, (text, label, label_mask) in enumerate(train_dataloader):
+        for step, (text, input_mask, label, label_mask) in enumerate(train_dataloader):
+
+            # print('text')
+            # print(text)
+            # print(text.shape)
+            # print('input mask')
+            # print(input_mask)
+            # print(input_mask.shape)
+            # print('label')
+            # print(label)
+            # print(label.shape)
+            # print('label mask')
+            # print(label_mask)
+            # print(label_mask.shape)
             
             # Progress update every print_each_n_step batches.
             if step % print_each_n_step == 0 and not step == 0:
@@ -128,27 +136,31 @@ def objective(trial: Trial) -> float:
             hidden = generator.initHidden(batch_size, device)
             gen_out, hidden = generator(noise, hidden)
             gen_rep = torch.argmax(gen_out, dim=2) # converting to token
+            # add start and end token for fake texts
+            gen_rep[:, 0] = 101
+            gen_rep[:, -1] = 102
 
             # augment text and generator fake data
             train_aug = trial.study.user_attrs['train_aug']
-            if train_aug > 0:
-                text, label, label_mask, gen_rep, _ = augment_real_fake_tensors(
-                    text=text,
-                    label=label,
-                    gen_rep=gen_rep,
-                    vocab=vocab,
-                    train_aug=train_aug,
-                    seq_size=seq_size
-                )
+            # if train_aug > 0:
+            #     text, label, label_mask, gen_rep, _ = augment_real_fake_tensors(
+            #         text=text,
+            #         label=label,
+            #         gen_rep=gen_rep,
+            #         vocab=vocab,
+            #         train_aug=train_aug,
+            #         seq_size=seq_size
+            #     )
 
             # Generate the output of the Discriminator for real and fake data.
             # First, we put together the output of the tranformer and the generator
             # disciminator_input = torch.cat([text, gen_out], dim=0)
             disciminator_input = torch.cat([text, gen_rep], dim=0)
+            # Also, join with the fake sentences mask
+            fake_input_mask = torch.ones(size=input_mask.shape)
+            input_mask = torch.cat([input_mask, fake_input_mask], dim=0)
             # Then, we select the output of the disciminator
-            features, logits, probs = discriminator(disciminator_input)
-            # print('----- features -----')
-            # print(features, features.shape)
+            features, logits, probs = discriminator(disciminator_input, input_mask)
 
             # Finally, we separate the discriminator's output for the real and fake
             # data
@@ -176,14 +188,6 @@ def objective(trial: Trial) -> float:
             g_loss_d = -1 * torch.mean(torch.log(1 - D_fake_probs[:,-1] + epsilon))
             g_feat_reg = torch.mean(torch.pow(torch.mean(D_real_features, dim=0) - torch.mean(D_fake_features, dim=0), 2))
             g_loss = g_loss_d + g_feat_reg
-            if step == 0:
-                print('------- Generator loss ---------')
-                print(D_fake_probs)
-                print(D_real_features)
-                print(D_fake_features)
-                print('g_loss_d: ' + str(g_loss_d))
-                print('g_feat_reg: ' + str(g_feat_reg))
-                print('g_loss: ' + str(g_loss))
     
             # Disciminator's LOSS estimation
             logits = D_real_logits[:,0:-1]
@@ -206,12 +210,6 @@ def objective(trial: Trial) -> float:
             D_L_unsupervised1U = -1 * torch.mean(torch.log(1 - D_real_probs[:, -1] + epsilon))
             D_L_unsupervised2U = -1 * torch.mean(torch.log(D_fake_probs[:, -1] + epsilon))
             d_loss = D_L_Supervised + D_L_unsupervised1U + D_L_unsupervised2U
-            if step == 0:
-                print('------- Discriminator loss ---------')
-                print(D_real_probs)
-                print('D_L_Supervised: ' + str(D_L_Supervised))
-                print('D_L_unsupervised: ' + str(D_L_unsupervised1U + D_L_unsupervised2U))
-                print('d_loss: ' + str(d_loss))
 
             #---------------------------------
             #  OPTIMIZATION
@@ -266,7 +264,7 @@ def objective(trial: Trial) -> float:
     
     return test_accuracy
 
-def test(trial: Trial, test_dataloader: DataLoader, generator: Generator, discriminator: Discriminator, epoch_i: int, avg_train_loss_g: float, avg_train_loss_d: float, training_time: int, training_stats: List[Dict]):
+def test(trial: Trial, test_dataloader: DataLoader, generator: Generator, discriminator: BERTDiscriminator, epoch_i: int, avg_train_loss_g: float, avg_train_loss_d: float, training_time: int, training_stats: List[Dict]):
     """Perform test step at the end of one epoch"""
 
     print("")
@@ -290,11 +288,11 @@ def test(trial: Trial, test_dataloader: DataLoader, generator: Generator, discri
     nll_loss = torch.nn.CrossEntropyLoss(ignore_index=-1)
 
     # Evaluate data for one epoch
-    for text, label, _ in test_dataloader:
+    for text, input_mask, label, label_mask in test_dataloader:
         # Tell pytorch not to bother with constructing the compute graph during
         # the forward pass, since this is only needed for backprop (training).
         with torch.no_grad():
-            _, logits, probs = discriminator(text)
+            _, logits, probs = discriminator(text, input_mask)
             filtered_logits = logits[:,0:-1]
             total_test_loss += nll_loss(filtered_logits, label)
                 

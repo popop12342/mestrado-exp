@@ -21,7 +21,7 @@ class Generator(nn.Module):
             
         self.layers = nn.Sequential(*layers)
         self.out = nn.Linear(2*self.hidden_size, output_size)
-        self.softmax = nn.LogSoftmax(dim=1)
+        self.softmax = nn.Softmax(dim=-1)
 
     def initHidden(self, batch_size, device):
         return torch.zeros(2*self.num_layers, batch_size, self.hidden_size, device=device)
