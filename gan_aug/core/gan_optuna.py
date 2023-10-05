@@ -176,14 +176,14 @@ def objective(trial: Trial) -> float:
             g_loss_d = -1 * torch.mean(torch.log(1 - D_fake_probs[:,-1] + epsilon))
             g_feat_reg = torch.mean(torch.pow(torch.mean(D_real_features, dim=0) - torch.mean(D_fake_features, dim=0), 2))
             g_loss = g_loss_d + g_feat_reg
-            if step == 0:
-                print('------- Generator loss ---------')
-                print(D_fake_probs)
-                print(D_real_features)
-                print(D_fake_features)
-                print('g_loss_d: ' + str(g_loss_d))
-                print('g_feat_reg: ' + str(g_feat_reg))
-                print('g_loss: ' + str(g_loss))
+            # if step == 0:
+            #     print('------- Generator loss ---------')
+            #     print(D_fake_probs)
+            #     print(D_real_features)
+            #     print(D_fake_features)
+            #     print('g_loss_d: ' + str(g_loss_d))
+            #     print('g_feat_reg: ' + str(g_feat_reg))
+            #     print('g_loss: ' + str(g_loss))
     
             # Disciminator's LOSS estimation
             logits = D_real_logits[:,0:-1]
@@ -206,12 +206,12 @@ def objective(trial: Trial) -> float:
             D_L_unsupervised1U = -1 * torch.mean(torch.log(1 - D_real_probs[:, -1] + epsilon))
             D_L_unsupervised2U = -1 * torch.mean(torch.log(D_fake_probs[:, -1] + epsilon))
             d_loss = D_L_Supervised + D_L_unsupervised1U + D_L_unsupervised2U
-            if step == 0:
-                print('------- Discriminator loss ---------')
-                print(D_real_probs)
-                print('D_L_Supervised: ' + str(D_L_Supervised))
-                print('D_L_unsupervised: ' + str(D_L_unsupervised1U + D_L_unsupervised2U))
-                print('d_loss: ' + str(d_loss))
+            # if step == 0:
+            #     print('------- Discriminator loss ---------')
+            #     print(D_real_probs)
+            #     print('D_L_Supervised: ' + str(D_L_Supervised))
+            #     print('D_L_unsupervised: ' + str(D_L_unsupervised1U + D_L_unsupervised2U))
+            #     print('d_loss: ' + str(d_loss))
 
             #---------------------------------
             #  OPTIMIZATION
