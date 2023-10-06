@@ -63,7 +63,7 @@ def objective(trial: Trial) -> float:
     else:
         train_dataloader, test_dataloader, seq_size = create_bert_dataloaders(
             trial.study.user_attrs['dataset'], batch_size=batch_size, device=device,
-            tokenizer=tokenizer)
+            tokenizer=tokenizer, num_aug=trial.study.user_attrs['num_aug'])
 
     ## Models
     num_layers = trial.study.user_attrs['num_layers']
@@ -136,9 +136,6 @@ def objective(trial: Trial) -> float:
             hidden = generator.initHidden(batch_size, device)
             gen_out, hidden = generator(noise, hidden)
             gen_rep = torch.argmax(gen_out, dim=2) # converting to token
-            # add start and end token for fake texts
-            gen_rep[:, 0] = 101
-            gen_rep[:, -1] = 102
 
             # augment text and generator fake data
             train_aug = trial.study.user_attrs['train_aug']
@@ -157,7 +154,9 @@ def objective(trial: Trial) -> float:
             # disciminator_input = torch.cat([text, gen_out], dim=0)
             disciminator_input = torch.cat([text, gen_rep], dim=0)
             # Also, join with the fake sentences mask
-            fake_input_mask = torch.ones(size=input_mask.shape)
+            fake_input_mask = torch.ones(size=input_mask.shape, device=device)
+            fake_input_mask[gen_rep == 0] = 0
+
             input_mask = torch.cat([input_mask, fake_input_mask], dim=0)
             # Then, we select the output of the disciminator
             features, logits, probs = discriminator(disciminator_input, input_mask)

@@ -231,7 +231,7 @@ cython_debug/
 antonym_aug/data/*
 ganbert_subj/data/*
 
-gan_aug/core/stats/*
+gan_aug/core/stats/**/*.json
 gan_aug/img/*
 gan_aug/data/*
 gan_aug/models/*
