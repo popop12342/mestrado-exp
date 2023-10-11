@@ -32,8 +32,8 @@ num_train_epochs = 10
 noise_size = 100
 batch_size = 8
 epsilon = 1e-8
-# labels = ['UNK', '0', '1']
-labels = ['0', '1']
+labels = ['UNK', '0', '1']
+# labels = ['0', '1']
 
 model_name = "bert-base-cased"
 tokenizer = AutoTokenizer.from_pretrained(model_name)
@@ -177,7 +177,7 @@ def objective(trial: Trial) -> float:
             D_fake_probs = probs_list[1]
 
             # Fake labels counting
-            true_fakes_batch = (torch.argmax(D_fake_probs, dim=1) == 2).sum().item()
+            true_fakes_batch = (torch.argmax(D_fake_probs, dim=1) == len(labels)).sum().item()
             true_fakes += true_fakes_batch
 
             #---------------------------------
@@ -245,7 +245,7 @@ def objective(trial: Trial) -> float:
         print("")
         print("  Average training loss generetor: {0:.3f}".format(avg_train_loss_g))
         print("  Average training loss discriminator: {0:.3f}".format(avg_train_loss_d))
-        print("  Training epcoh took: {:}".format(training_time))
+        print("  Training epoch took: {:}".format(training_time))
         print("  Fakes correct discriminared: {}".format(true_fakes))
 
         print("Saving the models...............................")
