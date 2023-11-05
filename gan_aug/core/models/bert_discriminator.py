@@ -8,6 +8,7 @@ class BERTDiscriminator(nn.Module):
         super(BERTDiscriminator, self).__init__()
         model_name = "bert-base-cased"
         self.transformer = AutoModel.from_pretrained(model_name)
+        # self.transformer.requires_grad_(False)
         hidden_size = int(AutoConfig.from_pretrained(model_name).hidden_size)
 
         self.seq_size = seq_size

@@ -15,16 +15,14 @@ class Generator(nn.Module):
             hidden_size=self.hidden_size,
             num_layers=self.num_layers,
             batch_first=True,
-            dropout=self.dropout,
-            bidirectional=True
+            dropout=self.dropout
         )
             
-        self.layers = nn.Sequential(*layers)
-        self.out = nn.Linear(2*self.hidden_size, output_size)
+        self.out = nn.Linear(self.hidden_size, output_size)
         self.softmax = nn.Softmax(dim=-1)
 
     def initHidden(self, batch_size, device):
-        return torch.zeros(2*self.num_layers, batch_size, self.hidden_size, device=device)
+        return torch.zeros(self.num_layers, batch_size, self.hidden_size, device=device)
     
     def forward(self, noise, hidden):
         output, hidden = self.gru(noise, hidden)

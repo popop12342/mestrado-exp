@@ -29,8 +29,8 @@ torch.manual_seed(seed_val)
 ## Params
 print_each_n_step = 50
 num_train_epochs = 10
-noise_size = 100
-batch_size = 8
+noise_size = 1
+batch_size = 64
 epsilon = 1e-8
 labels = ['UNK', '0', '1']
 # labels = ['0', '1']
@@ -175,6 +175,11 @@ def objective(trial: Trial) -> float:
             probs_list = torch.split(probs, split_size)
             D_real_probs = probs_list[0]
             D_fake_probs = probs_list[1]
+            # if step % print_each_n_step == 0 and not step == 0:
+            #     print(gen_rep)
+            #     print(fake_input_mask)
+            #     print(D_real_probs)
+            #     print(D_fake_probs)
 
             # Fake labels counting
             true_fakes_batch = (torch.argmax(D_fake_probs, dim=1) == len(labels)).sum().item()
@@ -185,8 +190,9 @@ def objective(trial: Trial) -> float:
             #---------------------------------
             # Generator's LOSS estimation
             g_loss_d = -1 * torch.mean(torch.log(1 - D_fake_probs[:,-1] + epsilon))
-            g_feat_reg = torch.mean(torch.pow(torch.mean(D_real_features, dim=0) - torch.mean(D_fake_features, dim=0), 2))
+            g_feat_reg = 0 * torch.mean(torch.pow(torch.mean(D_real_features, dim=0) - torch.mean(D_fake_features, dim=0), 2))
             g_loss = g_loss_d + g_feat_reg
+            # print(g_loss_d, g_feat_reg)
     
             # Disciminator's LOSS estimation
             logits = D_real_logits[:,0:-1]
@@ -209,6 +215,7 @@ def objective(trial: Trial) -> float:
             D_L_unsupervised1U = -1 * torch.mean(torch.log(1 - D_real_probs[:, -1] + epsilon))
             D_L_unsupervised2U = -1 * torch.mean(torch.log(D_fake_probs[:, -1] + epsilon))
             d_loss = D_L_Supervised + D_L_unsupervised1U + D_L_unsupervised2U
+            # print(D_L_Supervised, D_L_unsupervised1U, D_L_unsupervised2U)
 
             #---------------------------------
             #  OPTIMIZATION
