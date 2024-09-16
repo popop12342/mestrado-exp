@@ -1,6 +1,8 @@
 import pickle
 import torch
-import torchtext
+from torchtext.data import get_tokenizer
+from torchtext.vocab import build_vocab_from_iterator
+
 from argparse import ArgumentParser
 from typing import List, Tuple
 import numpy as np
@@ -9,7 +11,7 @@ from transformers import PreTrainedTokenizer
 from dataset_loader.dataset_loader import load_dataset
 from eda import eda
 
-tokenizer = torchtext.data.utils.get_tokenizer('basic_english')
+tokenizer = get_tokenizer('basic_english')
 MAX_SEQ_SIZE = 64
 
 def build_vocab(train_sentences):
@@ -17,7 +19,7 @@ def build_vocab(train_sentences):
         for sen in sentences:
             yield tokenizer(sen)
 
-    vocab = torchtext.vocab.build_vocab_from_iterator(yield_tokens(train_sentences), specials=['<unk>', '<pad>'])
+    vocab = build_vocab_from_iterator(yield_tokens(train_sentences), specials=['<unk>', '<pad>'])
     vocab.set_default_index(vocab['<unk>'])
     return vocab
 
