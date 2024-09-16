@@ -30,10 +30,10 @@ torch.manual_seed(seed_val)
 print_each_n_step = 50
 num_train_epochs = 10
 noise_size = 1
-batch_size = 64
+batch_size = 8
 epsilon = 1e-8
-labels = ['UNK', '0', '1']
-# labels = ['0', '1']
+# labels = ['UNK', '0', '1']
+labels = ['0', '1']
 
 model_name = "bert-base-cased"
 tokenizer = AutoTokenizer.from_pretrained(model_name)
@@ -42,8 +42,11 @@ if torch.cuda.is_available():
   torch.cuda.manual_seed_all(seed_val)
 
 # If there's a GPU available...
-if torch.cuda.is_available():    
-    # Tell PyTorch to use the GPU.    
+if torch.backends.mps.is_available():
+    print('Using MPS backend')
+    device = torch.device('mps')
+elif torch.cuda.is_available():
+    # Tell PyTorch to use the GPU.
     device = torch.device("cuda")
     print('There are %d GPU(s) available.' % torch.cuda.device_count())
     print('We will use the GPU:', torch.cuda.get_device_name(0))
@@ -76,6 +79,8 @@ def objective(trial: Trial) -> float:
     print(discriminator)
     print('discriminator parameters: ' + str(sum(p.numel() for p in discriminator.parameters() if p.requires_grad)))
 
+    generator.to(device)
+    discriminator.to(device)
     if torch.cuda.is_available():
         generator.cuda()
         discriminator.cuda()
@@ -136,9 +141,13 @@ def objective(trial: Trial) -> float:
             hidden = generator.initHidden(batch_size, device)
             gen_out, hidden = generator(noise, hidden)
             gen_rep = torch.argmax(gen_out, dim=2) # converting to token
+            # print('noise')
+            # print(noise.shape)
 
             # augment text and generator fake data
             train_aug = trial.study.user_attrs['train_aug']
+            # print('gen rep')
+            # print(gen_rep.shape)
             # if train_aug > 0:
             #     text, label, label_mask, gen_rep, _ = augment_real_fake_tensors(
             #         text=text,
@@ -160,6 +169,14 @@ def objective(trial: Trial) -> float:
             input_mask = torch.cat([input_mask, fake_input_mask], dim=0)
             # Then, we select the output of the disciminator
             features, logits, probs = discriminator(disciminator_input, input_mask)
+            # print('discriminator input')
+            # print(disciminator_input.shape)
+            # print('features')
+            # print(features.shape)
+            # print('logits')
+            # print(logits.shape)
+            # print('probs')
+            # print(probs.shape)
 
             # Finally, we separate the discriminator's output for the real and fake
             # data
@@ -175,11 +192,6 @@ def objective(trial: Trial) -> float:
             probs_list = torch.split(probs, split_size)
             D_real_probs = probs_list[0]
             D_fake_probs = probs_list[1]
-            # if step % print_each_n_step == 0 and not step == 0:
-            #     print(gen_rep)
-            #     print(fake_input_mask)
-            #     print(D_real_probs)
-            #     print(D_fake_probs)
 
             # Fake labels counting
             true_fakes_batch = (torch.argmax(D_fake_probs, dim=1) == len(labels)).sum().item()
