@@ -1,6 +1,7 @@
 from typing import List, Tuple
 from dataset_loader.abstract_dataset_loader import AbstractDatasetLoader
 
+
 class SUBJDatasetLoader(AbstractDatasetLoader):
     @staticmethod
     def load(fraction: str) -> Tuple[List[str], List[str], List[str], List[str]]:
@@ -10,7 +11,7 @@ class SUBJDatasetLoader(AbstractDatasetLoader):
         test_labels = []
         if not fraction:
             train_file = '../data/subj/train_orig.txt'
-        else :
+        else:
             train_file = '../data/subj/train_{}.txt'.format(fraction)
         with open(train_file, 'r') as f:
             for line in f:
