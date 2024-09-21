@@ -11,9 +11,16 @@ Para rodar o experimento execute o notebook [`antonym_test.ipynb`](data/antonym_
 ## GAN para data augmentation
 
 O diretório `gan_aug` tem o experimento que utiliza um GAN para realizar
-aumento de dados textuais. No subdiretório `gan_aug/optuna` experimos com ele
+aumento de dados textuais. No subdiretório `gan_aug/core` experimos com ele
 para otimização de hiper-parâmetros utilizando a ferramenta Optuna, rodando
 o arquivo gan_optuna.py.
+
+Para rodar o experimento GAN-TEXTGEN + BERT execute o arquivo
+`gan_textgeb_bert.py`. Para um conjunto diferente do subj faça
+
+```bash
+python gan_textgen_bert.py --dataset subj_005
+```
 
 Os datasets utilizados nesses experimentos deverão estar no diretório
 `gan_aug/data`. Atualmente, suportamos os datasets subj e
