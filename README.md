@@ -22,7 +22,14 @@ Para rodar o experimento GAN-TEXTGEN + BERT execute o arquivo
 python gan_textgen_bert.py --dataset subj_005
 ```
 
+### Data
+
 Os datasets utilizados nesses experimentos deverão estar no diretório
-`gan_aug/data`. Atualmente, suportamos os datasets subj e
-[acllmbd](http://www.aclweb.org/anthology/P11-1015%7D) que foi baixado do
-[Kaggle](https://www.kaggle.com/datasets/pawankumargunjan/imdb-review).
+`gan_aug/data`. Atualmente, suportamos os datasets os seguintes datasets:
+
+| Dataset                                           | Tamanho de treinamento | Tamanho de validação | Tamanho total | Labels                         | Link |
+| ------------------------------------------------- | ---------------------- | -------------------- | ------------- | ------------------------------ | ---- |
+| SUBJ                                              | 9k                     | 1k                   | 10k           | *subjective*, *objetive*       | [Cornell](https://www.cs.cornell.edu/people/pabo/movie-review-data/) |
+| AclIMDB                                           | 25k                    | 25k                  | 50k           | *negative*, *positive*         | [Kaggle](https://www.kaggle.com/datasets/pawankumargunjan/imdb-review) |
+| Rotten400k                                        | 379k                   | 42k                  | 421k          | *negative*, *positive*         | [Kaggle](https://www.kaggle.com/datasets/talha002/rottentomatoes-400k-review) |
+| Multilingual Task-Oriented Dialog Data (en/es/th) | 30k/3,6k/2,1k          | 4k/2k/1,2k                   | 43k/8k/5k           | *alarm*, *reminder*, *weather* | [Facebook](https://fb.me/multilingual_task_oriented_data) |

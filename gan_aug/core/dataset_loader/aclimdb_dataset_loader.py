@@ -5,6 +5,7 @@ import os
 
 DATASET_BASE = '../data/aclImdb'
 
+
 class AclImdbDatasetLoader(AbstractDatasetLoader):
 
     @staticmethod
@@ -13,7 +14,7 @@ class AclImdbDatasetLoader(AbstractDatasetLoader):
         train_labels = []
         test_sentences = []
         test_labels = []
-        
+
         train_dir = os.path.join(DATASET_BASE, 'train')
         # positive train sentences
         pos_train_dir = os.path.join(train_dir, 'pos')
@@ -26,7 +27,7 @@ class AclImdbDatasetLoader(AbstractDatasetLoader):
         train_labels += ['0'] * (len(train_sentences) - len(train_labels))
 
         test_dir = os.path.join(DATASET_BASE, 'test')
-        #positive test sentences
+        # positive test sentences
         pos_test_dir = os.path.join(test_dir, 'pos')
         test_sentences.extend(AclImdbDatasetLoader._load_files_from(pos_test_dir))
         test_labels += ['1'] * len(test_sentences)
@@ -38,8 +39,7 @@ class AclImdbDatasetLoader(AbstractDatasetLoader):
 
         return train_sentences, train_labels, test_sentences, test_labels
 
-
-    @staticmethod 
+    @staticmethod
     def _load_files_from(dirpath: str, fraction: str = None) -> List[str]:
         files = os.listdir(dirpath)
         if fraction:

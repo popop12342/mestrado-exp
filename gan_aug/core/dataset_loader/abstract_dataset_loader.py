@@ -1,6 +1,7 @@
 from abc import ABCMeta, abstractmethod
 from typing import List, Tuple
 
+
 class AbstractDatasetLoader(metaclass=ABCMeta):
     @staticmethod
     @abstractmethod

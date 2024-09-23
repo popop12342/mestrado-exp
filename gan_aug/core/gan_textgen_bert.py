@@ -12,7 +12,7 @@ from data_utils import format_time, save_stats
 from dataloader import create_bert_dataloaders
 from optuna.trial import Trial
 from torch.utils.data import DataLoader
-from models.bert_discriminator import BERTDiscriminator
+from models.bert_discriminator import BERTDiscriminator, model_name
 from models.generator import Generator
 from transformers import AutoTokenizer
 from util.early_stopping import EarlyStopping
@@ -30,12 +30,12 @@ noise_size = 1
 batch_size = 8
 epsilon = 1e-8
 # labels = ['UNK', '0', '1']
-labels = ['0', '1']
+# labels = ['0', '1']  # for binary classification
+labels = ['0', '1', '2']  # task orieinted dialog domain classification
 initial_temp = 1.0
 anneal_rate = 0.95
 min_temp = 0.1
 
-model_name = "bert-base-cased"
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 
 if torch.cuda.is_available():
