@@ -95,7 +95,7 @@ def objective(trial: Trial) -> float:
     gen_optimizer = torch.optim.AdamW(g_vars, lr=5e-5)
     dis_optimizer = torch.optim.AdamW(d_vars, lr=5e-5)
 
-    early_stopping = EarlyStopping(patience=5, min_delta=0.01, verbose=True)
+    early_stopping = EarlyStopping(patience=5, min_delta=0.001, verbose=True)
 
     # For each epoch...
     for epoch_i in range(0, num_train_epochs):

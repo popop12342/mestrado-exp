@@ -25,7 +25,7 @@ class EarlyStopping:
                 if self.verbose:
                     print(f"Early stopping triggered after {self.epochs_no_improve} epochs with no improvement.")
         else:
-            self.best_score = current_score
-            self.epochs_no_improve = 0  # Reset counter if there is improvement
             if self.verbose:
                 print(f"Improvement found: {current_score:.6f} (previous best: {self.best_score:.6f})")
+            self.best_score = current_score
+            self.epochs_no_improve = 0  # Reset counter if there is improvement
