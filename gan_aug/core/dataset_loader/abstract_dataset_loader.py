@@ -2,10 +2,12 @@ from abc import ABCMeta, abstractmethod
 
 
 class AbstractDatasetLoader(metaclass=ABCMeta):
-    @staticmethod
     @abstractmethod
-    def load() -> tuple[list[str], list[str], list[str], list[str]]:
+    def load(self, dataset_name: str) -> tuple[list[str], list[str], list[str], list[str]]:
         """Loads the training set and validation set of one dataset
+
+        Args:
+            dataset_name (str): dataset name
 
         Returns:
             list[str]: train sentences
@@ -15,9 +17,8 @@ class AbstractDatasetLoader(metaclass=ABCMeta):
         """
         pass
 
-    @staticmethod
     @abstractmethod
-    def get_labels() -> list[str]:
+    def get_labels(self) -> list[str]:
         """Returns the labels of the dataset
 
         Returns:
@@ -43,3 +44,18 @@ class AbstractDatasetLoader(metaclass=ABCMeta):
         train_sentences = train_sentences[:num_train]
         train_labels = train_labels[:num_train]
         return train_sentences, train_labels
+
+    def _get_fraction(self, dataset_name: str) -> str:
+        fraction = None
+        if '_' in dataset_name:
+            fraction = '_'.join(dataset_name.split('_')[1:])
+        return fraction
+
+    def _get_lang_and_fraction(self, dataset_name: str) -> tuple[str, float]:
+        if '_' not in dataset_name:
+            return None, None
+
+        splits = dataset_name.split('_')
+        lang = splits[1]
+        fraction = int(splits[2]) / 100
+        return lang, fraction

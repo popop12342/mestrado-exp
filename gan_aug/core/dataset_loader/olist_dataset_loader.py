@@ -2,8 +2,8 @@ from dataset_loader.abstract_dataset_loader import AbstractDatasetLoader
 
 
 class OlistDatasetLoader(AbstractDatasetLoader):
-    @staticmethod
-    def load(fraction: str) -> tuple[list[str], list[str], list[str], list[str]]:
+    def load(self, dataset_name: str) -> tuple[list[str], list[str], list[str], list[str]]:
+        fraction = self._get_fraction(dataset_name)
         train_sentences = []
         train_labels = []
         test_sentences = []
@@ -21,11 +21,9 @@ class OlistDatasetLoader(AbstractDatasetLoader):
                 test_labels.append(label)
 
         if fraction:
-            train_sentences, train_labels = AbstractDatasetLoader.fraction_training_set(fraction, train_sentences,
-                                                                                        train_labels)
+            train_sentences, train_labels = self.fraction_training_set(fraction, train_sentences, train_labels)
 
         return train_sentences, train_labels, test_sentences, test_labels
 
-    @staticmethod
-    def get_labels() -> list[str]:
+    def get_labels(self) -> list[str]:
         return ['0', '1']

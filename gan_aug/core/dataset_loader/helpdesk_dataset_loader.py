@@ -1,5 +1,4 @@
 import csv
-from typing import List, Tuple
 from dataset_loader.abstract_dataset_loader import AbstractDatasetLoader
 
 LABELS = {
@@ -17,13 +16,13 @@ LABELS = {
 
 
 class HelpdeskDatasetLoader(AbstractDatasetLoader):
-    @staticmethod
-    def load(fraction: str) -> Tuple[List[str], List[str], List[str], List[str]]:
+    def load(self, dataset_name: str) -> tuple[list[str], list[str], list[str], list[str]]:
+        fraction = self._get_fraction(dataset_name)
         train_sentences, train_labels = HelpdeskDatasetLoader.load_from_file('../data/helpdesk/helpdesk-train.csv')
         test_sentences, test_labels = HelpdeskDatasetLoader.load_from_file('../data/helpdesk/helpdesk-test.csv')
 
         if fraction:
-            train_sentences, train_labels = super().fraction_training_set(fraction, train_sentences, train_labels)
+            train_sentences, train_labels = self.fraction_training_set(fraction, train_sentences, train_labels)
 
         return train_sentences, train_labels, test_sentences, test_labels
 
@@ -38,6 +37,5 @@ class HelpdeskDatasetLoader(AbstractDatasetLoader):
                 labels.append(LABELS[row['label']])
         return sentences, labels
 
-    @staticmethod
-    def get_labels() -> List[str]:
+    def get_labels(self) -> list[str]:
         return [str(val) for val in LABELS.values()]

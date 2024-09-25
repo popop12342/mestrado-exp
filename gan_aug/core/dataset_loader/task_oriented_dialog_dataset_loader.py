@@ -1,6 +1,5 @@
 import os
 import random
-from typing import List, Tuple
 from dataset_loader.abstract_dataset_loader import AbstractDatasetLoader
 
 
@@ -14,8 +13,8 @@ LABELS = {
 
 class TaskOrientedDialogDatasetLoader(AbstractDatasetLoader):
 
-    @staticmethod
-    def load(lang: str = 'en', fraction: float = None) -> Tuple[List[str], List[str], List[str], List[str]]:
+    def load(self, dataset_name: str) -> tuple[list[str], list[str], list[str], list[str]]:
+        lang, fraction = self._get_lang_and_fraction(dataset_name)
         if lang not in ['en', 'es', 'th']:
             raise FileNotFoundError(f'Task oriented dialog dataset has no language {lang}')
 
@@ -56,6 +55,5 @@ class TaskOrientedDialogDatasetLoader(AbstractDatasetLoader):
 
         return sentences, labels
 
-    @staticmethod
-    def get_labels() -> List[str]:
+    def get_labels(self) -> list[str]:
         return ['0', '1', '2']

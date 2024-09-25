@@ -1,7 +1,6 @@
 import csv
 
 from dataset_loader.abstract_dataset_loader import AbstractDatasetLoader
-from typing import List, Tuple
 
 
 class Rotten400kDatasetLoader(AbstractDatasetLoader):
@@ -9,8 +8,7 @@ class Rotten400kDatasetLoader(AbstractDatasetLoader):
     POSITIVE_TRESHOLD = 50
     TRAIN_SPLIT = 0.9
 
-    @staticmethod
-    def load() -> Tuple[List[str], List[str], List[str], List[str]]:
+    def load(self, dataset_name: str) -> tuple[list[str], list[str], list[str], list[str]]:
         sentences = []
         labels = []
         with open('../data/rotten400k/rottentomatoes-400k.csv', 'r') as csv_file:
@@ -28,6 +26,5 @@ class Rotten400kDatasetLoader(AbstractDatasetLoader):
 
         return train_sentences, train_labels, test_sentences, test_labels
 
-    @staticmethod
-    def get_labels() -> List[str]:
+    def get_labels(self) -> list[str]:
         return ['0', '1']

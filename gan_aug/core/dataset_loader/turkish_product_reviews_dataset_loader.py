@@ -7,8 +7,8 @@ TRAIN_SPLIT = 0.9
 
 class TurkishProductReviewsDatasetLoader(AbstractDatasetLoader):
 
-    @staticmethod
-    def load(fraction: str = None) -> tuple[list[str], list[str], list[str], list[str]]:
+    def load(self, dataset_name: str) -> tuple[list[str], list[str], list[str], list[str]]:
+        fraction = self._get_fraction(dataset_name)
         dataset = load_dataset('fthbrmnby/turkish_product_reviews')
         sentences = dataset['train']['sentence']
         labels = dataset['train']['sentiment']
@@ -24,11 +24,9 @@ class TurkishProductReviewsDatasetLoader(AbstractDatasetLoader):
         test_labels = labels[num_train:]
 
         if fraction:
-            train_sentences, train_labels = AbstractDatasetLoader.fraction_training_set(fraction, train_sentences,
-                                                                                        train_labels)
+            train_sentences, train_labels = self.fraction_training_set(fraction, train_sentences, train_labels)
 
         return train_sentences, train_labels, test_sentences, test_labels
 
-    @staticmethod
-    def get_labels() -> list[str]:
+    def get_labels(self) -> list[str]:
         return ['0', '1']

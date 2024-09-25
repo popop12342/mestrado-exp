@@ -6,8 +6,8 @@ DATASET_BASE = '../data/aclImdb'
 
 class AclImdbDatasetLoader(AbstractDatasetLoader):
 
-    @staticmethod
-    def load(fraction: str = None) -> tuple[list[str], list[str], list[str], list[str]]:
+    def load(self, dataset_name: str) -> tuple[list[str], list[str], list[str], list[str]]:
+        fraction = self._get_fraction(dataset_name)
         train_sentences = []
         train_labels = []
         test_sentences = []
@@ -51,6 +51,5 @@ class AclImdbDatasetLoader(AbstractDatasetLoader):
                 content.append(f.readline())
         return content
 
-    @staticmethod
-    def get_labels() -> list[str]:
+    def get_labels(self) -> list[str]:
         return ['0', '1']
