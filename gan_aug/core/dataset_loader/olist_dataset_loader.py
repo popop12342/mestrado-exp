@@ -1,10 +1,9 @@
-from typing import List, Tuple
 from dataset_loader.abstract_dataset_loader import AbstractDatasetLoader
 
 
 class OlistDatasetLoader(AbstractDatasetLoader):
     @staticmethod
-    def load(fraction: str) -> Tuple[List[str], List[str], List[str], List[str]]:
+    def load(fraction: str) -> tuple[list[str], list[str], list[str], list[str]]:
         train_sentences = []
         train_labels = []
         test_sentences = []
@@ -22,10 +21,11 @@ class OlistDatasetLoader(AbstractDatasetLoader):
                 test_labels.append(label)
 
         if fraction:
-            train_sentences, train_labels = super().fraction_training_set(fraction, train_sentences, train_labels)
+            train_sentences, train_labels = AbstractDatasetLoader.fraction_training_set(fraction, train_sentences,
+                                                                                        train_labels)
 
         return train_sentences, train_labels, test_sentences, test_labels
 
     @staticmethod
-    def get_labels() -> List[str]:
+    def get_labels() -> list[str]:
         return ['0', '1']

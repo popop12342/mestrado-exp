@@ -4,3 +4,4 @@ torchtext
 scikit-learn
 nltk
 transformers
+datasets

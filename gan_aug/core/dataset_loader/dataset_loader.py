@@ -6,6 +6,7 @@ from dataset_loader.task_oriented_dialog_dataset_loader import TaskOrientedDialo
 from dataset_loader.olist_dataset_loader import OlistDatasetLoader
 from dataset_loader.helpdesk_dataset_loader import HelpdeskDatasetLoader
 from dataset_loader.abstract_dataset_loader import AbstractDatasetLoader
+from dataset_loader.turkish_product_reviews_dataset_loader import TurkishProductReviewsDatasetLoader
 
 
 def load_dataset(dataset_name: str) -> Tuple[List[str], List[str], List[str], List[str]]:
@@ -22,6 +23,8 @@ def load_dataset(dataset_name: str) -> Tuple[List[str], List[str], List[str], Li
         return OlistDatasetLoader.load(_get_fraction(dataset_name))
     elif dataset_name.startswith('helpdesk'):
         return HelpdeskDatasetLoader.load(_get_fraction(dataset_name))
+    elif dataset_name.startswith('turkish-product-reviews'):
+        return TurkishProductReviewsDatasetLoader.load(_get_fraction(dataset_name))
     raise FileNotFoundError('Dataset with name {} was not found'.format(dataset_name))
 
 
@@ -35,7 +38,8 @@ _dataset_loaders: dict[str: AbstractDatasetLoader] = {
     'rotten400k': Rotten400kDatasetLoader,
     'task-oriented-dialog': TaskOrientedDialogDatasetLoader,
     'olist': OlistDatasetLoader,
-    'helpdesk': HelpdeskDatasetLoader
+    'helpdesk': HelpdeskDatasetLoader,
+    'turkish-product-reviews': TurkishProductReviewsDatasetLoader
 }
 
 

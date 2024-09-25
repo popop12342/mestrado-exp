@@ -1,18 +1,17 @@
 from abc import ABCMeta, abstractmethod
-from typing import List, Tuple
 
 
 class AbstractDatasetLoader(metaclass=ABCMeta):
     @staticmethod
     @abstractmethod
-    def load() -> Tuple[List[str], List[str], List[str], List[str]]:
+    def load() -> tuple[list[str], list[str], list[str], list[str]]:
         """Loads the training set and validation set of one dataset
 
         Returns:
-            List[str]: train sentences
-            List[str]: train labels
-            List[str]: test sentences
-            List[str]: test labels
+            list[str]: train sentences
+            list[str]: train labels
+            list[str]: test sentences
+            list[str]: test labels
         """
         pass
 

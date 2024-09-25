@@ -1,7 +1,5 @@
-from dataset_loader.abstract_dataset_loader import AbstractDatasetLoader
-from typing import Tuple, List
-
 import os
+from dataset_loader.abstract_dataset_loader import AbstractDatasetLoader
 
 DATASET_BASE = '../data/aclImdb'
 
@@ -9,7 +7,7 @@ DATASET_BASE = '../data/aclImdb'
 class AclImdbDatasetLoader(AbstractDatasetLoader):
 
     @staticmethod
-    def load(fraction: str = None) -> Tuple[List[str], List[str], List[str], List[str]]:
+    def load(fraction: str = None) -> tuple[list[str], list[str], list[str], list[str]]:
         train_sentences = []
         train_labels = []
         test_sentences = []
@@ -40,7 +38,7 @@ class AclImdbDatasetLoader(AbstractDatasetLoader):
         return train_sentences, train_labels, test_sentences, test_labels
 
     @staticmethod
-    def _load_files_from(dirpath: str, fraction: str = None) -> List[str]:
+    def _load_files_from(dirpath: str, fraction: str = None) -> list[str]:
         files = os.listdir(dirpath)
         if fraction:
             keep_percent = int(fraction) / 100
@@ -54,5 +52,5 @@ class AclImdbDatasetLoader(AbstractDatasetLoader):
         return content
 
     @staticmethod
-    def get_labels() -> List[str]:
+    def get_labels() -> list[str]:
         return ['0', '1']
