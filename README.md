@@ -27,10 +27,11 @@ python gan_textgen_bert.py --dataset subj_005
 Os datasets utilizados nesses experimentos deverão estar no diretório
 `gan_aug/data`. Atualmente, suportamos os datasets os seguintes datasets:
 
-| Dataset                                           | Tamanho de treinamento | Tamanho de validação | Tamanho total | Labels                         | Link |
-| ------------------------------------------------- | ---------------------- | -------------------- | ------------- | ------------------------------ | ---- |
-| SUBJ                                              | 9k                     | 1k                   | 10k           | *subjective*, *objetive*       | [Cornell](https://www.cs.cornell.edu/people/pabo/movie-review-data/) |
-| AclIMDB                                           | 25k                    | 25k                  | 50k           | *negative*, *positive*         | [Kaggle](https://www.kaggle.com/datasets/pawankumargunjan/imdb-review) |
-| Rotten400k                                        | 379k                   | 42k                  | 421k          | *negative*, *positive*         | [Kaggle](https://www.kaggle.com/datasets/talha002/rottentomatoes-400k-review) |
-| Multilingual Task-Oriented Dialog Data (en/es/th) | 30k/3,6k/2,1k          | 4k/2k/1,2k           | 43k/8k/5k     | *alarm*, *reminder*, *weather* | [Facebook](https://fb.me/multilingual_task_oriented_data) |
-| Olist                                             | 33k                    | 4k                   | 47k           | *negative*, *positive*         | [Kaggle](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce?resource=download&select=olist_order_reviews_dataset.csv) |
+| Dataset                                            | Tamanho de treinamento | Tamanho de validação | Tamanho total | Labels                         | Link |
+| -------------------------------------------------- | ---------------------- | -------------------- | ------------- | ------------------------------ | ---- |
+| SUBJ                                               | 9k                     | 1k                   | 10k           | *subjective*, *objetive*       | [Cornell](https://www.cs.cornell.edu/people/pabo/movie-review-data/) |
+| AclIMDB                                            | 25k                    | 25k                  | 50k           | *negative*, *positive*         | [Kaggle](https://www.kaggle.com/datasets/pawankumargunjan/imdb-review) |
+| Rotten400k                                         | 379k                   | 42k                  | 421k          | *negative*, *positive*         | [Kaggle](https://www.kaggle.com/datasets/talha002/rottentomatoes-400k-review) |
+| Multilingual Task-Oriented Dialog Data (en/es/th)  | 30k/3,6k/2,1k          | 4k/2k/1,2k           | 43k/8k/5k     | *alarm*, *reminder*, *weather* | [Facebook](https://fb.me/multilingual_task_oriented_data) |
+| Olist                                              | 33k                    | 4k                   | 47k           | *negative*, *positive*         | [Kaggle](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce?resource=download&select=olist_order_reviews_dataset.csv) |
+| Customer Support Emails - Ticket System - Helpdesk | 480                    | 120                  | 600            | *General Inquiry*, *Human Resources*, *Billing and Payments*, *Sales and Pre-Sales*, *IT Support*, *Customer Service*, *Product Support*, *Returns and Exchanges*, *Service Outages and Maintenance*, *Technical Support* | [Kaggle](https://www.kaggle.com/datasets/tobiasbueck/multilingual-customer-support-tickets/data) |

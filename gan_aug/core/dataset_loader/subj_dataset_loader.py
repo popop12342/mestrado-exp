@@ -24,3 +24,7 @@ class SUBJDatasetLoader(AbstractDatasetLoader):
                 test_sentences.append(sentence)
                 test_labels.append(label)
         return train_sentences, train_labels, test_sentences, test_labels
+
+    @staticmethod
+    def get_labels() -> List[str]:
+        return ['0', '1']

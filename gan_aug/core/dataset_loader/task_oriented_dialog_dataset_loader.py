@@ -55,3 +55,7 @@ class TaskOrientedDialogDatasetLoader(AbstractDatasetLoader):
                 labels.append(label)
 
         return sentences, labels
+
+    @staticmethod
+    def get_labels() -> List[str]:
+        return ['0', '1', '2']

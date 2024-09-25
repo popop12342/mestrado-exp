@@ -22,9 +22,10 @@ class OlistDatasetLoader(AbstractDatasetLoader):
                 test_labels.append(label)
 
         if fraction:
-            fraction = int(fraction) / 100
-            num_train = int(fraction * len(train_sentences))
-            train_sentences = train_sentences[:num_train]
-            train_labels = train_labels[:num_train]
+            train_sentences, train_labels = super().fraction_training_set(fraction, train_sentences, train_labels)
 
         return train_sentences, train_labels, test_sentences, test_labels
+
+    @staticmethod
+    def get_labels() -> List[str]:
+        return ['0', '1']

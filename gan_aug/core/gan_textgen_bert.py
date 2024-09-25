@@ -10,6 +10,7 @@ import torch
 import torch.nn.functional as F
 from data_utils import format_time, save_stats
 from dataloader import create_bert_dataloaders
+from dataset_loader import dataset_loader
 from optuna.trial import Trial
 from torch.utils.data import DataLoader
 from models.bert_discriminator import BERTDiscriminator, model_name
@@ -29,9 +30,6 @@ num_train_epochs = 50
 noise_size = 1
 batch_size = 8
 epsilon = 1e-8
-# labels = ['UNK', '0', '1']
-# labels = ['0', '1']  # for binary classification
-labels = ['0', '1', '2']  # task orieinted dialog domain classification
 initial_temp = 1.0
 anneal_rate = 0.95
 min_temp = 0.1
@@ -59,6 +57,7 @@ else:
 def objective(trial: Trial) -> float:
     """Objetive function of one training trial to optimize test accuracy"""
     # Load data
+    labels = dataset_loader.get_labels(trial.study.user_attrs['dataset'])
     if trial.study.user_attrs['pickle_data']:
         print('Getting dataloaders from file')
         with open(trial.study.user_attrs['pickle_data'], 'rb') as pickle_file:

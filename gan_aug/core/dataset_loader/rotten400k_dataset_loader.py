@@ -27,3 +27,7 @@ class Rotten400kDatasetLoader(AbstractDatasetLoader):
         test_labels = labels[train_size:]
 
         return train_sentences, train_labels, test_sentences, test_labels
+
+    @staticmethod
+    def get_labels() -> List[str]:
+        return ['0', '1']

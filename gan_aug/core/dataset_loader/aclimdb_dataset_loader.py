@@ -52,3 +52,7 @@ class AclImdbDatasetLoader(AbstractDatasetLoader):
             with open(filepath, 'r') as f:
                 content.append(f.readline())
         return content
+
+    @staticmethod
+    def get_labels() -> List[str]:
+        return ['0', '1']
