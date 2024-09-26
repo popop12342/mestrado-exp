@@ -3,6 +3,7 @@ from typing import List, Tuple
 from dataset_loader.abstract_dataset_loader import AbstractDatasetLoader
 from dataset_loader.aclimdb_dataset_loader import AclImdbDatasetLoader
 from dataset_loader.helpdesk_dataset_loader import HelpdeskDatasetLoader
+from dataset_loader.multilingual_sentiments_dataset_loader import MultilingualSentimentsDatasetLoader
 from dataset_loader.olist_dataset_loader import OlistDatasetLoader
 from dataset_loader.rotten400k_dataset_loader import Rotten400kDatasetLoader
 from dataset_loader.subj_dataset_loader import SUBJDatasetLoader
@@ -18,7 +19,8 @@ _dataset_loaders: dict[str: AbstractDatasetLoader] = {
     'task-oriented-dialog': TaskOrientedDialogDatasetLoader(),
     'olist': OlistDatasetLoader(),
     'helpdesk': HelpdeskDatasetLoader(),
-    'turkish-product-reviews': TurkishProductReviewsDatasetLoader()
+    'turkish-product-reviews': TurkishProductReviewsDatasetLoader(),
+    'multilingual-sentiments': MultilingualSentimentsDatasetLoader()
 }
 
 
