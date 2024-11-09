@@ -5,3 +5,7 @@ scikit-learn
 nltk
 transformers
 datasets
+langchain
+langchain_openai
+langchain_community
+python-dotenv

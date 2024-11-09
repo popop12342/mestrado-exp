@@ -11,9 +11,11 @@ from dataset_loader.task_oriented_dialog_dataset_loader import \
     TaskOrientedDialogDatasetLoader
 from dataset_loader.turkish_product_reviews_dataset_loader import \
     TurkishProductReviewsDatasetLoader
+from dataset_loader.llm_dataset_loader import LLMDatasetLoader
 
 _dataset_loaders: dict[str: AbstractDatasetLoader] = {
     'subj': SUBJDatasetLoader(),
+    'llm': LLMDatasetLoader(),
     'aclImdb': AclImdbDatasetLoader(),
     'rotten400k': Rotten400kDatasetLoader(),
     'task-oriented-dialog': TaskOrientedDialogDatasetLoader(),

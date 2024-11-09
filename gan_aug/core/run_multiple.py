@@ -2,6 +2,7 @@ import json
 from argparse import ArgumentParser
 from collections import namedtuple, defaultdict
 from gan_textgen_bert import objective
+from bert import train
 
 datasets = [
     'subj_001', 'subj_005', 'subj_010', 'subj_020', 'subj_030', 'subj_040', 
@@ -26,14 +27,17 @@ class SingleTrial:
 
 def run_one_experiment(dataset: str, trial_id: int) -> SingleTrial:
     Study = namedtuple('Study', ['user_attrs', 'study_name'])
-    study = Study(defaultdict(str), study_name='label-vs-unlabel')
+    study = Study(defaultdict(str), study_name='gan-textgen-bert-llm')
     study.user_attrs['dataset'] = dataset
     study.user_attrs['num_layers'] = 1
     study.user_attrs['num_aug'] = 0
     study.user_attrs['train_aug'] = 0
     study.user_attrs['hidden_size'] = 512
     trial = SingleTrial(study, trial_id=trial_id)
+    # GAN-TEXTGEN-BERT objective
     objective(trial)
+    # simple BERT training
+    # train(trial)
     return trial
 
 def run_compare_experiments():
@@ -55,7 +59,7 @@ def run_multiple_times_single_experiment(dataset: str, n: int):
         print(f'Best accuracy was {trial.accuracy} on epoch {trial.step}')
         results[dataset].append(trial.to_dict())
 
-    with open(f'stats/subj/gan-textgen-bert/{dataset}.json', 'w') as f:
+    with open(f'stats/llmaclImdb/gan-textgen-bert/{dataset}.json', 'w') as f:
         json.dump(results, f)
 
 
