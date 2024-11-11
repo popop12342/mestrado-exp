@@ -18,7 +18,6 @@ class BERTDiscriminator(nn.Module):
         self.hidden = hidden_size
         self.dropout = dropout
         self.linear_size = hidden_size
-        self.count = 0
 
         self.input_dropout = nn.Dropout(p=self.dropout)
         layers = []
@@ -32,8 +31,6 @@ class BERTDiscriminator(nn.Module):
         self.softmax = nn.Softmax(dim=-1)
 
     def forward(self, input_ids, input_mask_array):
-        self.count += 1
-
         model_outputs = self.transformer(input_ids, attention_mask=input_mask_array)
         hidden_states = model_outputs[-1]
 

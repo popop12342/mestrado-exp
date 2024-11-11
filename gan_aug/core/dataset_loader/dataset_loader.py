@@ -12,6 +12,7 @@ from dataset_loader.task_oriented_dialog_dataset_loader import \
 from dataset_loader.turkish_product_reviews_dataset_loader import \
     TurkishProductReviewsDatasetLoader
 from dataset_loader.llm_dataset_loader import LLMDatasetLoader
+from dataset_loader.configurable_llm_dataset_loader import ConfigurableLLMDatasetLoader
 
 _dataset_loaders: dict[str: AbstractDatasetLoader] = {
     'subj': SUBJDatasetLoader(),
@@ -22,7 +23,8 @@ _dataset_loaders: dict[str: AbstractDatasetLoader] = {
     'olist': OlistDatasetLoader(),
     'helpdesk': HelpdeskDatasetLoader(),
     'turkish-product-reviews': TurkishProductReviewsDatasetLoader(),
-    'multilingual-sentiments': MultilingualSentimentsDatasetLoader()
+    'multilingual-sentiments': MultilingualSentimentsDatasetLoader(),
+    'cllmolist': ConfigurableLLMDatasetLoader('olist', 'samples-2_naug-5')
 }
 
 

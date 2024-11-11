@@ -14,6 +14,8 @@ from data_utils import format_time
 from discriminator import Discriminator
 from generator import Generator
 
+# last version of torchtext warning
+torchtext.disable_torchtext_deprecation_warning()
 
 ##Set random values
 seed_val = 42

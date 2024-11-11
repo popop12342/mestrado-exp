@@ -1,5 +1,6 @@
 import pickle
 import torch
+import torchtext
 from torchtext.data import get_tokenizer
 from torchtext.vocab import build_vocab_from_iterator
 
@@ -11,8 +12,12 @@ from transformers import PreTrainedTokenizer
 from dataset_loader.dataset_loader import load_dataset
 from eda import eda
 
+# last version of torchtext warning
+torchtext.disable_torchtext_deprecation_warning()
+
 tokenizer = get_tokenizer('basic_english')
 MAX_SEQ_SIZE = 64
+
 
 def build_vocab(train_sentences):
     def yield_tokens(sentences):
@@ -22,6 +27,7 @@ def build_vocab(train_sentences):
     vocab = build_vocab_from_iterator(yield_tokens(train_sentences), specials=['<unk>', '<pad>'])
     vocab.set_default_index(vocab['<unk>'])
     return vocab
+
 
 def encode_xy(sentences, labels, vocab, seq_size, device):
     input_ids = []
@@ -44,6 +50,7 @@ def encode_xy(sentences, labels, vocab, seq_size, device):
     y = torch.tensor(label_ids, device=device)
     mask_y = torch.tensor(label_mask, device=device)
     return x, y, mask_y
+
 
 def create_dataset(sentences, labels, vocab, seq_size, device):
     input_ids, label_ids, label_mask = encode_xy(sentences, labels, vocab, seq_size, device)
@@ -70,6 +77,7 @@ def create_dataloaders(dataset_name: str, batch_size: int = 8, device: str = 'cp
 
     return train_dataloader, test_dataloader, seq_size, vocab
 
+
 def augment(sentences: List[str], labels: List[str], num_aug: int) -> Tuple[List[str], List[str]]:
     augmented_sentences = []
     augmented_labels = []
@@ -78,6 +86,7 @@ def augment(sentences: List[str], labels: List[str], num_aug: int) -> Tuple[List
         augmented_labels.extend([label] * (num_aug + 1))
     print('Augmenting original dataset by {}, from {} to {}'.format(num_aug+1, len(sentences), len(augmented_sentences)))
     return augmented_sentences, augmented_labels
+
 
 def create_word2vec_dataloaders(dataset_name: str, batch_size: int = 8, device: str = 'cpu', num_aug: int = 0):
     train_sentences, train_labels, test_sentences, test_labels = load_dataset(dataset_name)
@@ -100,6 +109,7 @@ def create_word2vec_dataloaders(dataset_name: str, batch_size: int = 8, device: 
     test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=True, drop_last=True)
 
     return train_dataloader, test_dataloader, seq_size, vocab
+
 
 def create_bert_dataloaders(dataset_name: str, tokenizer: PreTrainedTokenizer, batch_size: int = 8, device: str = 'cpu', num_aug: int = 0):
     train_sentences, train_labels, test_sentences, test_labels = load_dataset(dataset_name)
