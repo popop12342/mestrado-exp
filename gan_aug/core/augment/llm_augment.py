@@ -3,7 +3,7 @@ import sys
 import random
 from argparse import ArgumentParser
 from dotenv import load_dotenv
-from langchain_core.prompts import PromptTemplate
+from langchain_core.prompts import PromptTemplate, ChatPromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_openai import ChatOpenAI
 from langchain_community.callbacks.manager import get_openai_callback
@@ -24,16 +24,30 @@ llm = ChatOpenAI(
 
 DATA_DIR = '../data'
 
+# SYSTEM_PROMPT = "You are a text generation expert, capable of producing novel high quality labeled examples. You have\
+# a very good understanding of the language and the specific domain you are requested. The texts you produce are similar\
+# to the ones you recieve as an example and are variend in term of vocabulary used, expressions, manners, delivery, etc.\
+# You always produced examples labeled correctly."
+
+SYSTEM_PROMPT = """You are a text generation expert specializing in creating high-quality, novel labeled examples for text classification tasks. You have a deep understanding of language nuances and the specific domain provided. Your task is to generate text that closely aligns with the examples given, while introducing diversity in vocabulary, expressions, tone, style, and delivery.
+
+Each example must be accurately labeled and exhibit clear alignment with the provided label's characteristics. For subjective texts, focus on personal opinions, emotions, and impressions. For objective texts, maintain factual and neutral descriptions. Similarly, ensure sentiment labels (positive/negative) match the tone and content of the text.
+
+Your output must be coherent, varied, and domain-appropriate to enhance the dataset effectively. Avoid repeating patterns or introducing biases inconsistent with the provided examples."""
 
 def augment_data(samples: list[tuple[str, str]], generated_per_round: int, base_dataset: str) -> list[tuple[str, str]]:
     prompt_template = get_prompt_template(base_dataset=base_dataset)
-    prompt = PromptTemplate.from_template(prompt_template, partial_variables={'num': str(generated_per_round)})
+    prompt = ChatPromptTemplate([
+        ('system', SYSTEM_PROMPT),
+        ('user', prompt_template)
+    ], partial_variables={'num': str(generated_per_round)})
     pipeline = prompt | llm | JsonOutputParser()
 
     examples_str = ''
     for sentence, label in samples:
         examples_str += f'Classification: {label}\n Review: {sentence}\n\n'
 
+    # print(prompt.invoke({'examples_text': examples_str}))
     result = pipeline.invoke({'examples_text': examples_str})
     generated_samples = []
     for record in result:

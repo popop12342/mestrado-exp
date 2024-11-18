@@ -13,6 +13,7 @@ class ConfigurableLLMDatasetLoader(LLMDatasetLoader):
         dataset_folder = f'../data/llm{self.base_dataset}/{self.subdir}/'
         train_file = f'{dataset_folder}llm_{self.base_dataset}_{fraction}.txt'
 
+        print('Reading file ' + train_file)
         train_sentences, train_labels = self.load_from_file(train_file)
         test_sentences, test_labels = self.load_from_file(f'{dataset_folder}test.txt')
 

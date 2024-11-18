@@ -37,3 +37,12 @@ Os datasets utilizados nesses experimentos deverão estar no diretório
 | Customer Support Emails - Ticket System - Helpdesk | 480                    | 120                  | 600            | *General Inquiry*, *Human Resources*, *Billing and Payments*, *Sales and Pre-Sales*, *IT Support*, *Customer Service*, *Product Support*, *Returns and Exchanges*, *Service Outages and Maintenance*, *Technical Support* | [Kaggle](https://www.kaggle.com/datasets/tobiasbueck/multilingual-customer-support-tickets/data) |
 | Turkish Product Reviews                            | 211k                   | 24k                  | 235k           | *negative*, *positive*         | [Hugging Face](https://huggingface.co/datasets/fthbrmnby/turkish_product_reviews) |
 | Multilingual Sentiments                            | 270k (all languages)   | 14k (all languages)  | 296k (all languages) | *positive*, *neural*, *negative* | [Hugging Face](https://huggingface.co/datasets/tyqiangz/multilingual-sentiments) |
+
+É possível aumentar esses datasets com um LLM. Para isso, é preciso que tenha
+disponível uma chave de API da OpenAI nas variáveis de ambiente com o nome
+`OPENAI_API_KEY`, ou no arquivo .env. Então, será possível executar o aumento
+de dados com LLM com o seguinte comando
+
+```bash
+python augment/llm_augment.py --dataset subj_005
+```
