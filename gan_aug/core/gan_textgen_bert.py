@@ -74,10 +74,10 @@ def objective(trial: Trial) -> float:
         discriminator = BERTDiscriminator(num_layers, seq_size, device, num_labels=len(labels))
         generator = Generator(num_layers=num_layers, noise_size=noise_size, output_size=tokenizer.vocab_size,
                               hidden_size=hidden_size, initial_temperature=initial_temp)
-    print(generator)
-    print('generator parameters: ' + str(sum(p.numel() for p in generator.parameters() if p.requires_grad)))
-    print(discriminator)
-    print('discriminator parameters: ' + str(sum(p.numel() for p in discriminator.parameters() if p.requires_grad)))
+    # print(generator)
+    # print('generator parameters: ' + str(sum(p.numel() for p in generator.parameters() if p.requires_grad)))
+    # print(discriminator)
+    # print('discriminator parameters: ' + str(sum(p.numel() for p in discriminator.parameters() if p.requires_grad)))
 
     generator.to(device)
     discriminator.to(device)

@@ -65,7 +65,7 @@ def train(trial: Trial) -> float:
                                                                           num_aug=num_aug, tokenizer=tokenizer)
 
     model = BERTDiscriminator(num_layers=1, seq_size=seq_size, device=device)
-    print(model)
+    # print(model)
 
     model.to(device)
     if torch.cuda.is_available():

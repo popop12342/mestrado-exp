@@ -1,6 +1,7 @@
 import json
 from argparse import ArgumentParser
 from collections import namedtuple, defaultdict
+from tqdm import tqdm
 from gan_textgen_bert import objective
 from bert import train
 
@@ -63,7 +64,8 @@ def run_compare_experiments():
 
 def run_multiple_times_single_experiment(dataset: str, n: int, model: str):
     results = {dataset: []}
-    for i in range(n):
+    for i in tqdm(range(n)):
+        # print(f'====== Run {i+1} / {n} ======')
         trial = run_one_experiment(dataset, i, model)
         print(f'Best accuracy was {trial.accuracy} on epoch {trial.step}')
         results[dataset].append(trial.to_dict())
