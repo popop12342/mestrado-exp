@@ -25,7 +25,7 @@ _dataset_loaders: dict[str: AbstractDatasetLoader] = {
     'turkish-product-reviews': TurkishProductReviewsDatasetLoader(),
     'multilingual-sentiments': MultilingualSentimentsDatasetLoader(),
     'cllmolist': ConfigurableLLMDatasetLoader('olist', 'samples-20_naug-1'),
-    'cllmsubj': ConfigurableLLMDatasetLoader('subj', 'samples-20_naug-1')
+    'cllmsubj': ConfigurableLLMDatasetLoader('subj', 'samples-20_naug-11')
 }
 
 

@@ -35,6 +35,7 @@ Each example must be accurately labeled and exhibit clear alignment with the pro
 
 Your output must be coherent, varied, and domain-appropriate to enhance the dataset effectively. Avoid repeating patterns or introducing biases inconsistent with the provided examples."""
 
+
 def augment_data(samples: list[tuple[str, str]], generated_per_round: int, base_dataset: str) -> list[tuple[str, str]]:
     prompt_template = get_prompt_template(base_dataset=base_dataset)
     prompt = ChatPromptTemplate([

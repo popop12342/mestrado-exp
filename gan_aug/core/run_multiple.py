@@ -1,7 +1,9 @@
+import os
 import json
 from argparse import ArgumentParser
 from collections import namedtuple, defaultdict
 from tqdm import tqdm
+import gan_textgen_transformer
 from gan_textgen_bert import objective
 from bert import train
 
@@ -41,6 +43,8 @@ def run_one_experiment(dataset: str, trial_id: int, model: str) -> SingleTrial:
     if model == 'gan-textgen-bert':
         # GAN-TEXTGEN-BERT objective
         objective(trial)
+    elif model == 'gan-textgen-transformer':
+        gan_textgen_transformer.objective(trial)
     elif model == 'bert':
         # simple BERT training
         train(trial)
@@ -70,7 +74,10 @@ def run_multiple_times_single_experiment(dataset: str, n: int, model: str):
         print(f'Best accuracy was {trial.accuracy} on epoch {trial.step}')
         results[dataset].append(trial.to_dict())
 
-    with open(f'stats/llmsubj/samples-20_naug-1/{model}/{dataset}.json', 'w') as f:
+    stats_dir = f'stats/llmsubj/samples-20_naug-11/{model}'
+    if not os.path.exists(stats_dir):
+        os.makedirs(stats_dir)
+    with open(f'{stats_dir}/{dataset}.json', 'w') as f:
         json.dump(results, f)
 
 
@@ -79,6 +86,6 @@ if __name__ == '__main__':
     parser.add_argument('--dataset', type=str, help='Dataset to run mutltiple times')
     parser.add_argument('--repeat', type=int, help='Number of times to repeat each experiment', default=10)
     parser.add_argument('--model', type=str, help='Model evaluated (gan-textgen-bert or bert)',
-                        default='gan-textgen-bert', choices=['gan-textgen-bert', 'bert'])
+                        default='gan-textgen-bert', choices=['gan-textgen-bert', 'gan-textgen-transformer', 'bert'])
     args = parser.parse_args()
     run_multiple_times_single_experiment(args.dataset, args.repeat, args.model)
