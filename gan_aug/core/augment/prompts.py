@@ -1,57 +1,21 @@
-# SUBJ prompt
-subj_prompt_template = """INSTRUCTION
-Here are some examples of movie reviews labeled as either "Subjective" or "Objective."
-Generate a new movie review for each category, keeping the tone and style similar to the examples.
+from .dataset_prompt_template import DatasetPromptTemplate
+from .prompt_templates.aclimdb_prompt_template import aclimdb_dpt
+from .prompt_templates.olist_prompt_template import olist_dpt
+from .prompt_templates.rotten400k_prompt_template import rotten400k_dpt
+from .prompt_templates.subj_prompt_template import subj_dpt
 
-EXAMPLES
-{examples_text}
 
-OUTPUT
-Generate {num} new reviews that matches these classifications.
-Your output should be in JSON format and you shoud onyl return this JSON.
-Return a list of objects with the keys `text` (for the generated text) and
-`label` for its label
-"""
-
-# AclIMDB prompt
-aclimdb_prompt_template = """INSTRUCTION
-Here are some examples of movie reviews labeled as either "Positive" or "Negative."
-Generate a new movie review for each category, keeping the tone and style similar to the examples.
-
-EXAMPLES
-{examples_text}
-
-OUTPUT
-Generate {num} new reviews that matches these classifications.
-Your output should be in JSON format and you shoud onyl return this JSON.
-Return a list of objects with the keys `text` (for the generated text) and
-`label` for its label
-"""
-
-# Olist prompt
-olist_prompt_template = """INSTRUCTION
-Here are some examples of product reviews labeled as either "negative" or "positive."
-Generate a new product review for each category, keeping the tone and style similar to the examples.
-
-EXAMPLES
-{examples_text}
-
-OUTPUT
-Generate {num} new reviews that matches these classifications.
-Your output should be in JSON format and you shoud onyl return this JSON.
-Return a list of objects with the keys `text` (for the generated text) and
-`label` for its label
-"""
-
-dataset_prompt_templates = {
-    'subj': subj_prompt_template,
-    'aclimdb': aclimdb_prompt_template,
-    'olist': olist_prompt_template
+prompt_template_registry: dict[str, DatasetPromptTemplate] = {
+    'subj': subj_dpt,
+    'aclImdb': aclimdb_dpt,
+    'rotten400k': rotten400k_dpt,
+    'olist': olist_dpt
 }
 
 
 def get_prompt_template(base_dataset: str) -> str:
-    if base_dataset in dataset_prompt_templates:
-        return dataset_prompt_templates[base_dataset]
+    if base_dataset in prompt_template_registry:
+        prompt_template = prompt_template_registry[base_dataset]
+        return prompt_template.build_template()
 
     raise KeyError('No prompt template found for dataset ' + base_dataset)

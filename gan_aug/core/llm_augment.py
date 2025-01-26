@@ -1,16 +1,14 @@
 import os
-import sys
 import random
 from argparse import ArgumentParser
 from dotenv import load_dotenv
-from langchain_core.prompts import PromptTemplate, ChatPromptTemplate
+from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_openai import ChatOpenAI
 from langchain_community.callbacks.manager import get_openai_callback
 from tqdm import tqdm
 
-from prompts import get_prompt_template
-sys.path.append('.')
+from augment.prompts import get_prompt_template
 from dataset_loader.dataset_loader import load_dataset
 
 load_dotenv()
@@ -115,7 +113,7 @@ def run_augmentation(
 
     cleaned_samples = []
     for sentence, label in all_sentences:
-        label_id = labels.index(label)
+        label_id = labels.index(label.lower())
         sentence = sentence.strip()
         cleaned_samples.append((sentence, label_id))
 
