@@ -1,4 +1,3 @@
-import random
 import time
 from typing import Dict, List
 from argparse import ArgumentParser
@@ -18,10 +17,10 @@ from transformers import AutoTokenizer
 from util.early_stopping import EarlyStopping
 
 # Set random values
-seed_val = 42
-random.seed(seed_val)
-np.random.seed(seed_val)
-torch.manual_seed(seed_val)
+# seed_val = 42
+# random.seed(seed_val)
+# np.random.seed(seed_val)
+# torch.manual_seed(seed_val)
 
 # Params
 print_each_n_step = 50
@@ -35,8 +34,8 @@ min_temp = 0.1
 
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 
-if torch.cuda.is_available():
-    torch.cuda.manual_seed_all(seed_val)
+# if torch.cuda.is_available():
+#     torch.cuda.manual_seed_all(seed_val)
 
 # If there's a GPU available...
 if torch.backends.mps.is_available():
