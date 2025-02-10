@@ -7,6 +7,8 @@ from dotenv import load_dotenv
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_openai import ChatOpenAI
+from langchain_huggingface import ChatHuggingFace, HuggingFacePipeline
+from langchain_core.language_models import BaseChatModel
 from langchain_community.callbacks.manager import get_openai_callback
 from tqdm import tqdm
 from sentence_transformers import SentenceTransformer, util
@@ -21,13 +23,6 @@ load_dotenv()
 
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 
-model = 'gpt-4o-mini'
-temperature = 0.7
-llm = ChatOpenAI(
-    model=model,
-    temperature=temperature,
-    api_key=OPENAI_API_KEY
-)
 
 DATA_DIR = '../data'
 
@@ -45,7 +40,21 @@ Each example must be accurately labeled and exhibit clear alignment with the pro
 Your output must be coherent, varied, and domain-appropriate to enhance the dataset effectively. Avoid repeating patterns or introducing biases inconsistent with the provided examples."""
 
 
-def augment_data(samples: list[tuple[str, str]], generated_per_round: int, base_dataset: str) -> list[tuple[str, str]]:
+def create_chat_model(model: str = 'gpt-4o-mini', model_type='openai', **kwargs) -> BaseChatModel:
+    if model_type == 'openai':
+        return ChatOpenAI(
+            model=model,
+            api_key=OPENAI_API_KEY,
+            **kwargs
+        )
+    elif model_type == 'huggingface':
+        llm = HuggingFacePipeline.from_model_id(model_id=model, task='text-generation', trust_remote_code=True)
+        return ChatHuggingFace(llm=llm)
+    log.error('Invalid model type: %s', model_type)
+    raise ValueError('Invalid model type')
+
+
+def augment_data(samples: list[tuple[str, str]], generated_per_round: int, base_dataset: str, llm: BaseChatModel) -> list[tuple[str, str]]:
     prompt_template = get_prompt_template(base_dataset=base_dataset)
     prompt = ChatPromptTemplate([
         ('system', SYSTEM_PROMPT),
@@ -113,11 +122,15 @@ def run_augmentation(
         samples_per_round: int,
         generated_per_round: int,
         threshold: float,
-        filter: bool):
+        filter: bool,
+        model: str = 'gpt-4o-mini',
+        model_type: str = 'openai'):
     train_sentences, train_labels, test_sentences, test_labels = load_dataset(dataset)
     train_labels_str = [labels[int(y)] for y in train_labels]
 
     train_data = list(zip(train_sentences, train_labels_str))
+
+    llm = create_chat_model(model, model_type)
 
     base_dataset = get_base_dataset(dataset)
     generated_samples = []
@@ -127,7 +140,7 @@ def run_augmentation(
             # end_idx = (i+1) * samples_per_round
             # samples = train_data[start_idx:end_idx]
             samples = random.sample(train_data, samples_per_round)
-            gen_samples = augment_data(samples, generated_per_round, base_dataset)
+            gen_samples = augment_data(samples, generated_per_round, base_dataset, llm)
             generated_samples.extend(gen_samples)
     log.info(openai_cb)
 
@@ -212,6 +225,8 @@ if __name__ == '__main__':
     parser.add_argument('--generated_per_round', default=5, type=int)
     parser.add_argument('--threshold', default=0.8, type=float)
     parser.add_argument('--filter', default=False, type=bool)
+    parser.add_argument('--model', default='gpt-4o-mini')
+    parser.add_argument('--model_type', default='openai')
 
     args = parser.parse_args()
     run_augmentation(
@@ -221,5 +236,7 @@ if __name__ == '__main__':
         samples_per_round=args.samples_per_round,
         generated_per_round=args.generated_per_round,
         threshold=args.threshold,
-        filter=args.filter
+        filter=args.filter,
+        model=args.model,
+        model_type=args.model_type
     )

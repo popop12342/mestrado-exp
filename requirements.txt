@@ -7,4 +7,5 @@ datasets
 langchain
 langchain_openai
 langchain_community
+langchain_huggingface
 python-dotenv
