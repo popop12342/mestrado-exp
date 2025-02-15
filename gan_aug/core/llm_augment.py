@@ -117,7 +117,7 @@ def run_augmentation(config: AugmentationConfig):
 
     log.info(f'Generated {len(generated_samples)} samples')
 
-    if filter:
+    if config.filter_enabled:
         log.info('Filtering generated samples')
         generated_samples = embedding_similarity_filter(train_data, generated_samples, config.threshold)
         log.info(f'Filtered {len(generated_samples)} samples')
