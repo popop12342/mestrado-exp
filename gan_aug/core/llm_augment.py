@@ -1,7 +1,6 @@
 import logging
 import os
 import random
-import json
 from argparse import ArgumentParser
 from dotenv import load_dotenv
 from langchain_core.prompts import ChatPromptTemplate
@@ -14,6 +13,7 @@ from tqdm import tqdm
 from sentence_transformers import SentenceTransformer, util
 
 from augment.prompts import get_prompt_template
+from augment.augmentation_config import AugmentationConfig
 from dataset_loader.dataset_loader import load_dataset
 
 log = logging.getLogger(__name__)
@@ -48,18 +48,21 @@ def create_chat_model(model: str = 'gpt-4o-mini', model_type='openai', **kwargs)
             **kwargs
         )
     elif model_type == 'huggingface':
-        llm = HuggingFacePipeline.from_model_id(model_id=model, task='text-generation', trust_remote_code=True)
-        return ChatHuggingFace(llm=llm)
+        llm = HuggingFacePipeline.from_model_id(
+            model_id=model,
+            task='text-generation',
+            pipeline_kwargs={
+                'max_new_tokens': 5000
+            })
+        llm.pipeline.tokenizer.pad_token_id = 0
+
+        return llm
     log.error('Invalid model type: %s', model_type)
     raise ValueError('Invalid model type')
 
 
 def augment_data(samples: list[tuple[str, str]], generated_per_round: int, base_dataset: str, llm: BaseChatModel) -> list[tuple[str, str]]:
-    prompt_template = get_prompt_template(base_dataset=base_dataset)
-    prompt = ChatPromptTemplate([
-        ('system', SYSTEM_PROMPT),
-        ('user', prompt_template)
-    ], partial_variables={'num': str(generated_per_round)})
+    prompt = create_llm_prompt(generated_per_round, base_dataset)
     pipeline = prompt | llm | JsonOutputParser()
 
     examples_str = ''
@@ -79,68 +82,36 @@ def augment_data(samples: list[tuple[str, str]], generated_per_round: int, base_
     return generated_samples
 
 
+def create_llm_prompt(generated_per_round: int, base_dataset: str) -> ChatPromptTemplate:
+    prompt_template = get_prompt_template(base_dataset=base_dataset)
+    prompt = ChatPromptTemplate([
+        ('system', SYSTEM_PROMPT),
+        ('user', prompt_template)
+    ], partial_variables={'num': str(generated_per_round)})
+
+    return prompt
+
+
 def export_to_file(samples: list[tuple[str, str]], output_file: str):
     with open(output_file, 'w') as f:
         for sentence, label in samples:
             f.write(f'{label}\t{sentence}\n')
 
 
-def get_llm_dataset_dir_path(dataset: str, samples: int, naug: int) -> str:
-    base_dataset = get_base_dataset(dataset)
-    llm_dataset = 'llm' + base_dataset
-    augmentation_dir_name = f'samples-{samples}_naug-{naug}'
-    return os.path.join(DATA_DIR, llm_dataset, augmentation_dir_name)
+def run_augmentation(config: AugmentationConfig):
+    train_data, test_data = load_prepare_data(config.labels, config.dataset)
 
+    llm = create_chat_model(config.model, config.model_type)
 
-def get_base_dataset(dataset: str) -> str:
-    base_dataset = dataset
-    if '_' in dataset:
-        base_dataset = dataset.split('_')[0]
-    return base_dataset
-
-
-def get_output_file(dataset: str, samples: int, naug: int) -> str:
-    llm_dataset = get_llm_dataset_dir_path(dataset, samples, naug)
-    filename = f'llm_{dataset}.txt'
-    return os.path.join(llm_dataset, filename)
-
-
-def get_parameters_file(dataset: str, samples: int, naug: int) -> str:
-    llm_dataset = get_llm_dataset_dir_path(dataset, samples, naug)
-    return os.path.join(llm_dataset, 'parameters.json')
-
-
-def get_test_file(dataset: str, samples: int, naug: int) -> str:
-    llm_dataset = get_llm_dataset_dir_path(dataset, samples, naug)
-    return os.path.join(llm_dataset, 'test.txt')
-
-
-def run_augmentation(
-        labels: list[str],
-        dataset: str,
-        rounds: int,
-        samples_per_round: int,
-        generated_per_round: int,
-        threshold: float,
-        filter: bool,
-        model: str = 'gpt-4o-mini',
-        model_type: str = 'openai'):
-    train_sentences, train_labels, test_sentences, test_labels = load_dataset(dataset)
-    train_labels_str = [labels[int(y)] for y in train_labels]
-
-    train_data = list(zip(train_sentences, train_labels_str))
-
-    llm = create_chat_model(model, model_type)
-
-    base_dataset = get_base_dataset(dataset)
+    base_dataset = config.get_base_dataset()
     generated_samples = []
     with get_openai_callback() as openai_cb:
-        for _ in tqdm(range(rounds), desc='Gen round'):
+        for _ in tqdm(range(config.rounds), desc='Gen round'):
             # start_idx = i * samples_per_round
             # end_idx = (i+1) * samples_per_round
             # samples = train_data[start_idx:end_idx]
-            samples = random.sample(train_data, samples_per_round)
-            gen_samples = augment_data(samples, generated_per_round, base_dataset, llm)
+            samples = random.sample(train_data, config.samples_per_round)
+            gen_samples = augment_data(samples, config.generate_per_round, base_dataset, llm)
             generated_samples.extend(gen_samples)
     log.info(openai_cb)
 
@@ -148,30 +119,46 @@ def run_augmentation(
 
     if filter:
         log.info('Filtering generated samples')
-        generated_samples = embedding_similarity_filter(train_data, generated_samples, threshold)
+        generated_samples = embedding_similarity_filter(train_data, generated_samples, config.threshold)
         log.info(f'Filtered {len(generated_samples)} samples')
     all_sentences = train_data + generated_samples
 
     log.info(f'Total samples: {len(all_sentences)}')
 
-    cleaned_samples = []
-    for sentence, label in all_sentences:
-        label_id = labels.index(label.lower())
-        sentence = sentence.strip()
-        cleaned_samples.append((sentence, label_id))
+    cleaned_samples = clean_sentences(config.labels, all_sentences)
 
-    naug = int(generated_per_round * rounds / len(train_data))
-    output_file = get_output_file(dataset, samples_per_round, naug)
+    naug = int(config.generate_per_round * config.rounds / len(train_data))
+    output_file = config.get_output_file(naug)
     check_dir(output_file)
     export_to_file(cleaned_samples, output_file)
-    create_parameters_file(dataset, rounds, samples_per_round, generated_per_round, naug, threshold, filter)
+    config.create_parameters_file(naug)
     log.info(f'Result wrote to file {output_file}')
 
-    test_data = list(zip(test_sentences, test_labels))
-    test_file = get_test_file(dataset, samples_per_round, naug)
+    test_file = config.get_test_file(naug)
     if not os.path.exists(test_file):
         log.info('Creating test file')
         export_to_file(test_data, test_file)
+
+
+def clean_sentences(labels: list[str], all_sentences: list[tuple[str, str]]) -> list[tuple[str, str]]:
+    cleaned_samples = []
+    for sentence, label in all_sentences:
+        if label.lower() not in labels:
+            log.error('Invalid label: %s; %s', label, sentence)
+        label_id = labels.index(label.lower())
+        sentence = sentence.strip()
+        cleaned_samples.append((sentence, label_id))
+    return cleaned_samples
+
+
+def load_prepare_data(labels: list[str], dataset: str) -> tuple[list[tuple[str, str]], list[tuple[str, str]]]:
+    log.info('Loading dataset %s', dataset)
+    train_sentences, train_labels, test_sentences, test_labels = load_dataset(dataset)
+    train_labels_str = [labels[int(y)] for y in train_labels]
+
+    train_data = list(zip(train_sentences, train_labels_str))
+    test_data = list(zip(test_sentences, test_labels))
+    return train_data, test_data
 
 
 def check_dir(output_file):
@@ -181,29 +168,10 @@ def check_dir(output_file):
         os.mkdir(dirname)
 
 
-def create_parameters_file(dataset: str, rounds: int, sample_per_round: int, generated_per_round: int,
-                           naug: int, threshold: float, filter: bool):
-    parameters_file = get_parameters_file(dataset, sample_per_round, naug)
-    parameters = {
-        'dataset': dataset,
-        'rounds': rounds,
-        'samples_per_round': sample_per_round,
-        'generated_per_round': generated_per_round,
-        'naug': naug,
-        'threshold': threshold,
-        'filter': filter,
-        'model': model,
-        'temperature': temperature
-    }
-    with open(parameters_file, 'w') as f:
-        json.dump(parameters, f)
-    log.info(f'Parameters wrote to file {parameters_file}')
-
-
 def embedding_similarity_filter(
         real_samples: list[tuple[str, str]],
         synthetic_samples: list[tuple[str, str]],
-        threshold: float = 0.8) -> list[str]:
+        threshold: float = 0.8) -> list[tuple[str, str]]:
     embedder = SentenceTransformer(EMBEDDING_FILTER_MODEL)
     real_texts = [text for text, _ in real_samples]
     synthetic_texts = [text for text, _ in synthetic_samples]
@@ -229,14 +197,15 @@ if __name__ == '__main__':
     parser.add_argument('--model_type', default='openai')
 
     args = parser.parse_args()
-    run_augmentation(
-        labels=args.labels,
+    config = AugmentationConfig(
         dataset=args.dataset,
+        labels=args.labels,
         rounds=args.rounds,
         samples_per_round=args.samples_per_round,
-        generated_per_round=args.generated_per_round,
+        generate_per_round=args.generated_per_round,
         threshold=args.threshold,
-        filter=args.filter,
+        filter_enabled=args.filter,
         model=args.model,
         model_type=args.model_type
     )
+    run_augmentation(config)

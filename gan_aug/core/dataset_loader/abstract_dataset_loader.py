@@ -26,6 +26,15 @@ class AbstractDatasetLoader(metaclass=ABCMeta):
         """
         pass
 
+    @abstractmethod
+    def get_label_names(self) -> list[str]:
+        """Returns the labels names of the dataset, on the same order as `get_labels` method.
+
+        Returns:
+            list[str]: list of label names
+        """
+        pass
+
     @staticmethod
     def fraction_training_set(fraction: str, train_sentences: list[str],
                               train_labels: list[str]) -> tuple[list[str], list[str]]:

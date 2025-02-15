@@ -53,3 +53,6 @@ class AclImdbDatasetLoader(AbstractDatasetLoader):
 
     def get_labels(self) -> list[str]:
         return ['0', '1']
+
+    def get_label_names(self):
+        return ['negative', 'positive']

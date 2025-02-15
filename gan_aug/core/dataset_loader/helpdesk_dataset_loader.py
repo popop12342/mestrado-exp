@@ -39,3 +39,6 @@ class HelpdeskDatasetLoader(AbstractDatasetLoader):
 
     def get_labels(self) -> list[str]:
         return [str(val) for val in LABELS.values()]
+
+    def get_label_names(self):
+        return LABELS.keys()

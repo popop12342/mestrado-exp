@@ -57,3 +57,6 @@ class TaskOrientedDialogDatasetLoader(AbstractDatasetLoader):
 
     def get_labels(self) -> list[str]:
         return ['0', '1', '2']
+
+    def get_label_names(self):
+        return ['alarm', 'reminder', 'weather']

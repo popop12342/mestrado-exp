@@ -38,11 +38,26 @@ Os datasets utilizados nesses experimentos deverão estar no diretório
 | Turkish Product Reviews                            | 211k                   | 24k                  | 235k           | *negative*, *positive*         | [Hugging Face](https://huggingface.co/datasets/fthbrmnby/turkish_product_reviews) |
 | Multilingual Sentiments                            | 270k (all languages)   | 14k (all languages)  | 296k (all languages) | *positive*, *neural*, *negative* | [Hugging Face](https://huggingface.co/datasets/tyqiangz/multilingual-sentiments) |
 
+### Aumento com LLM
+
 É possível aumentar esses datasets com um LLM. Para isso, é preciso que tenha
 disponível uma chave de API da OpenAI nas variáveis de ambiente com o nome
 `OPENAI_API_KEY`, ou no arquivo .env. Então, será possível executar o aumento
 de dados com LLM com o seguinte comando
 
 ```bash
-python augment/llm_augment.py --dataset subj_005
+python llm_augment.py --dataset subj_005
+```
+
+Ainda é possível utilizar outros modelos para o aumento pelos argumentos
+`--model` e `--model_type` da seguinte forma:
+
+```bash
+python llm_augment.py --model meta-llama/Llama-3.2-3B-Instruct --model_type huggingface
+```
+
+Veja mais opções com
+
+```bash
+python llm_augment.py --help
 ```

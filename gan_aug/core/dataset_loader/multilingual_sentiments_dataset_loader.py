@@ -21,3 +21,6 @@ class MultilingualSentimentsDatasetLoader(AbstractDatasetLoader):
 
     def get_labels(self) -> list[str]:
         return ['0', '1', '2']
+
+    def get_label_names(self):
+        return ['negative', 'neutral', 'positive']

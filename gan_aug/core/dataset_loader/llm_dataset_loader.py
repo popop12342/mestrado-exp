@@ -30,6 +30,9 @@ class LLMDatasetLoader(AbstractDatasetLoader):
                 labels.append(label)
         return sentences, labels
 
+    def get_label_names(self):
+        return super().get_label_names()
+
     def _get_base_dataset_and_fraction(self, dataset_name: str) -> tuple[str, str]:
         splits = dataset_name.split('_')
         return splits[1], splits[2]
