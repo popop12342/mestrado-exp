@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_openai import ChatOpenAI
-from langchain_huggingface import ChatHuggingFace, HuggingFacePipeline
+from langchain_huggingface import ChatHuggingFace, HuggingFacePipeline, HuggingFaceEndpoint
 from langchain_core.language_models import BaseChatModel
 from langchain_community.callbacks.manager import get_openai_callback
 from tqdm import tqdm
@@ -57,6 +57,12 @@ def create_chat_model(model: str = 'gpt-4o-mini', model_type='openai', **kwargs)
         llm.pipeline.tokenizer.pad_token_id = 0
 
         return llm
+    elif model_type == 'huggingface-endpoint':
+        llm = HuggingFaceEndpoint(
+            repo_id=model,
+            max_new_tokens=10_000
+        )
+        return ChatHuggingFace(llm=llm)
     log.error('Invalid model type: %s', model_type)
     raise ValueError('Invalid model type')
 
@@ -69,16 +75,24 @@ def augment_data(samples: list[tuple[str, str]], generated_per_round: int, base_
     for sentence, label in samples:
         examples_str += f'Classification: {label}\n Review: {sentence}\n\n'
 
-    # print(prompt.invoke({'examples_text': examples_str}))
-    result = pipeline.invoke({'examples_text': examples_str})
-    # print(result)
+    result = None
+    retry = 0
+    max_retry = 3
+    while not result and retry < max_retry:
+        try:
+            result = pipeline.invoke({'examples_text': examples_str})
+        except Exception as e:
+            retry += 1
+            log.warning(f'Failed invoking generation pipeline with error {str(e)}, retry {retry}')
+
     generated_samples = []
-    for record in result:
-        if 'text' in record and 'label' in record:
-            generated = (record['text'], record['label'])
-            generated_samples.append(generated)
-        else:
-            log.warning('Invalid record: %s', record)
+    if result:
+        for record in result:
+            if 'text' in record and 'label' in record:
+                generated = (record['text'], record['label'])
+                generated_samples.append(generated)
+            else:
+                log.warning('Invalid record: %s', record)
     return generated_samples
 
 
@@ -145,6 +159,7 @@ def clean_sentences(labels: list[str], all_sentences: list[tuple[str, str]]) -> 
     for sentence, label in all_sentences:
         if label.lower() not in labels:
             log.error('Invalid label: %s; %s', label, sentence)
+            continue
         label_id = labels.index(label.lower())
         sentence = sentence.strip()
         cleaned_samples.append((sentence, label_id))

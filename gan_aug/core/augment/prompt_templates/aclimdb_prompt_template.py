@@ -11,7 +11,7 @@ EXAMPLES
 
 OUTPUT
 Generate {{num}} new reviews that matches these classifications.
-Your output should be in JSON format and you shoud onyl return this JSON.
+Your output should be in JSON format and you shoud ONLY return this JSON.
 Return a list of objects with the keys `text` (for the generated text) and
 `label` for its label
 """
