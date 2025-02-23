@@ -70,5 +70,5 @@ if __name__ == '__main__':
         model='r1',
         model_type='deepseek'
     )
-    # main(config)
-    create_dataset_file(config, llm_result_dir='../data/manual_llm/r1')
+    main(config)
+    # create_dataset_file(config, llm_result_dir='../data/manual_llm/r1')

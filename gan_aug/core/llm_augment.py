@@ -10,10 +10,10 @@ from langchain_huggingface import ChatHuggingFace, HuggingFacePipeline, HuggingF
 from langchain_core.language_models import BaseChatModel
 from langchain_community.callbacks.manager import get_openai_callback
 from tqdm import tqdm
-from sentence_transformers import SentenceTransformer, util
 
 from augment.prompts import get_prompt_template
 from augment.augmentation_config import AugmentationConfig
+from augment.filter.filter_augmentation import filter_augmentation, llm_filter
 from dataset_loader.dataset_loader import load_dataset
 
 log = logging.getLogger(__name__)
@@ -26,7 +26,6 @@ OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 
 DATA_DIR = '../data'
 
-EMBEDDING_FILTER_MODEL = 'sentence-transformers/LaBSE'
 
 # SYSTEM_PROMPT = "You are a text generation expert, capable of producing novel high quality labeled examples. You have\
 # a very good understanding of the language and the specific domain you are requested. The texts you produce are similar\
@@ -133,7 +132,7 @@ def run_augmentation(config: AugmentationConfig):
 
     if config.filter_enabled:
         log.info('Filtering generated samples')
-        generated_samples = embedding_similarity_filter(train_data, generated_samples, config.threshold)
+        generated_samples = filter_augmentation(train_data, generated_samples, config.threshold)
         log.info(f'Filtered {len(generated_samples)} samples')
     all_sentences = train_data + generated_samples
 
@@ -183,44 +182,40 @@ def check_dir(output_file):
         os.mkdir(dirname)
 
 
-def embedding_similarity_filter(
-        real_samples: list[tuple[str, str]],
-        synthetic_samples: list[tuple[str, str]],
-        threshold: float = 0.8) -> list[tuple[str, str]]:
-    embedder = SentenceTransformer(EMBEDDING_FILTER_MODEL)
-    real_texts = [text for text, _ in real_samples]
-    synthetic_texts = [text for text, _ in synthetic_samples]
-    real_embeddings = embedder.encode(real_texts, convert_to_tensor=True)
-    synthetic_embeddings = embedder.encode(synthetic_texts, convert_to_tensor=True)
-    cosine_scores = util.pytorch_cos_sim(synthetic_embeddings, real_embeddings)
-    filtered_samples = [
-        sample for idx, sample in enumerate(synthetic_samples) if cosine_scores[idx].max() > threshold
-    ]
-    return filtered_samples
-
-
 if __name__ == '__main__':
-    parser = ArgumentParser()
-    parser.add_argument('--labels', nargs=2, default=['subjective', 'objective'])  # test for binary classification
-    parser.add_argument('--dataset', default='subj_001')
-    parser.add_argument('--rounds', default=1, type=int)
-    parser.add_argument('--samples_per_round', default=5, type=int)
-    parser.add_argument('--generated_per_round', default=5, type=int)
-    parser.add_argument('--threshold', default=0.8, type=float)
-    parser.add_argument('--filter', default=False, type=bool)
-    parser.add_argument('--model', default='gpt-4o-mini')
-    parser.add_argument('--model_type', default='openai')
+    # parser = ArgumentParser()
+    # parser.add_argument('--labels', nargs=2, default=['subjective', 'objective'])  # test for binary classification
+    # parser.add_argument('--dataset', default='subj_001')
+    # parser.add_argument('--rounds', default=1, type=int)
+    # parser.add_argument('--samples_per_round', default=5, type=int)
+    # parser.add_argument('--generated_per_round', default=5, type=int)
+    # parser.add_argument('--threshold', default=0.8, type=float)
+    # parser.add_argument('--filter', default=False, type=bool)
+    # parser.add_argument('--model', default='gpt-4o-mini')
+    # parser.add_argument('--model_type', default='openai')
 
-    args = parser.parse_args()
-    config = AugmentationConfig(
-        dataset=args.dataset,
-        labels=args.labels,
-        rounds=args.rounds,
-        samples_per_round=args.samples_per_round,
-        generate_per_round=args.generated_per_round,
-        threshold=args.threshold,
-        filter_enabled=args.filter,
-        model=args.model,
-        model_type=args.model_type
-    )
-    run_augmentation(config)
+    # args = parser.parse_args()
+    # config = AugmentationConfig(
+    #     dataset=args.dataset,
+    #     labels=args.labels,
+    #     rounds=args.rounds,
+    #     samples_per_round=args.samples_per_round,
+    #     generate_per_round=args.generated_per_round,
+    #     threshold=args.threshold,
+    #     filter_enabled=args.filter,
+    #     model=args.model,
+    #     model_type=args.model_type
+    # )
+    # run_augmentation(config)
+
+    # Just for testing llm filtering, using the same real dataset and reference and to filter
+    real_sentences, real_labels, _, _ = load_dataset('aclImdb_001')
+    real_data = list(zip(real_sentences, real_labels))
+    fake_sentences, fake_labels, _, _ = load_dataset('cllmaclImdb_001')
+    fake_data = list(zip(fake_sentences, fake_labels))
+    fake_data = fake_data[len(real_data):]
+    print(f'only filtering {len(fake_data)} fake samples')
+
+    filtered_samples = llm_filter(real_data, fake_data)
+    print(f'Filtered {len(filtered_samples)} samples')
+    export_to_file(filtered_samples, '../data/aclImdb_001_filtered.txt')

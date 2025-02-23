@@ -17,6 +17,7 @@ class AugmentationConfig(BaseModel):
     generate_per_round: int
     threshold: float = Field(default=0.0)
     filter_enabled: bool = Field(default=False)
+    filter_kind: str = Field(default='similarity')
     model: str = Field(default='gpt-4o-mini')
     model_type: str = Field(default='openai')
 

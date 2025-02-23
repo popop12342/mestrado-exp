@@ -237,3 +237,4 @@ gan_aug/data/*
 gan_aug/models/*
 gan_aug/word2vec/*
 gan_aug/core/db/*
+gan_aug/labelstudio-data/*
