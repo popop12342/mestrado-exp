@@ -23,7 +23,7 @@ def main(config: AugmentationConfig):
 
         examples_str = ''
         for sentence, label in samples:
-            examples_str += f'Classification: {label}\n Review: {sentence}\n\n'
+            examples_str += f'Classification: {label}\n Text: {sentence}\n\n'
 
         prompt_value = prompt.invoke({'examples_text': examples_str})
         prompt_str = '\n\n'.join(msg.content for msg in prompt_value.to_messages())
@@ -62,13 +62,13 @@ def create_dataset_file(config: AugmentationConfig, llm_result_dir: str):
 
 if __name__ == '__main__':
     config = AugmentationConfig(
-        dataset='aclImdb_001',
-        labels=['negative', 'positive'],
+        dataset='helpdesk',
+        labels=["General Inquiry", "Human Resources", "Billing and Payments", "Sales and Pre-Sales", "IT Support", "Customer Service", "Product Support", "Returns and Exchanges", "Service Outages and Maintenance", "Technical Support"],
         rounds=25,
         samples_per_round=5,
         generate_per_round=10,
-        model='r1',
-        model_type='deepseek'
+        model='gpt-4o',
+        model_type='openai'
     )
     main(config)
     # create_dataset_file(config, llm_result_dir='../data/manual_llm/r1')

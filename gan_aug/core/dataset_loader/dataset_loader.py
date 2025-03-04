@@ -25,9 +25,10 @@ _dataset_loaders: dict[str: AbstractDatasetLoader] = {
     'turkish-product-reviews': TurkishProductReviewsDatasetLoader(),
     'multilingual-sentiments': MultilingualSentimentsDatasetLoader(),
     'cllmolist': ConfigurableLLMDatasetLoader('olist', 'samples-20_naug-1'),
-    'cllmsubj': ConfigurableLLMDatasetLoader('subj', 'samples-20_naug-11'),
-    'cllmaclImdb': ConfigurableLLMDatasetLoader('aclImdb', 'samples-5_naug-1'),
-    'cllmrotten400k': ConfigurableLLMDatasetLoader('rotten400k', 'samples-10_naug-1')
+    'cllmsubj': ConfigurableLLMDatasetLoader('subj', 'samples-5_naug-5'),
+    'cllmaclImdb': ConfigurableLLMDatasetLoader('aclImdb', 'samples-5_naug-4'),
+    'cllmrotten400k': ConfigurableLLMDatasetLoader('rotten400k', 'samples-10_naug-1'),
+    'cllmhelpdesk': ConfigurableLLMDatasetLoader('helpdesk', 'samples-5_naug-1'),
 }
 
 
@@ -39,7 +40,11 @@ def load_dataset(dataset_name: str) -> Tuple[List[str], List[str], List[str], Li
 
 
 def get_labels(dataset_name: str) -> list[str]:
-    return _get_dataset_loader(dataset_name).get_labels()
+    dataset_loader = _get_dataset_loader(dataset_name)
+    if isinstance(dataset_loader, ConfigurableLLMDatasetLoader):
+        base_dataset_name = dataset_loader.base_dataset
+        return _get_dataset_loader(base_dataset_name).get_labels()
+    return dataset_loader.get_labels()
 
 
 def _get_dataset_loader(dataset_name: str) -> AbstractDatasetLoader:

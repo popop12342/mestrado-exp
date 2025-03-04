@@ -26,6 +26,7 @@ class LLMDatasetLoader(AbstractDatasetLoader):
                 splits = line.split('\t')
                 label = splits[0]
                 sentence = ' '.join(splits[1:])
+                sentence = sentence.replace('\\n', '\n').strip()
                 sentences.append(sentence)
                 labels.append(label)
         return sentences, labels

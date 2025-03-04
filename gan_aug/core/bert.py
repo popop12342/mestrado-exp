@@ -210,9 +210,9 @@ def test(trial: Trial, test_dataloader: DataLoader, model: BERTDiscriminator, ep
         'Training Loss discriminator': avg_train_loss_d,
         'Valid. Loss': avg_test_loss,
         'Valid. Accur.': test_accuracy,
-        'Valid. F1': f1_score(all_labels_ids, all_preds),
-        'Valid. Recall': recall_score(all_labels_ids, all_preds),
-        'Valid. Precision': precision_score(all_labels_ids, all_preds),
+        # 'Valid. F1': f1_score(all_labels_ids, all_preds),
+        # 'Valid. Recall': recall_score(all_labels_ids, all_preds),
+        # 'Valid. Precision': precision_score(all_labels_ids, all_preds),
         'Training Time': training_time,
         'Test Time': test_time
     })

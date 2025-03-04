@@ -3,13 +3,15 @@ from .prompt_templates.aclimdb_prompt_template import aclimdb_dpt
 from .prompt_templates.olist_prompt_template import olist_dpt
 from .prompt_templates.rotten400k_prompt_template import rotten400k_dpt
 from .prompt_templates.subj_prompt_template import subj_dpt
+from .prompt_templates.helpdesk_prompt_template import helpdesk_dpt
 
 
 prompt_template_registry: dict[str, DatasetPromptTemplate] = {
     'subj': subj_dpt,
     'aclImdb': aclimdb_dpt,
     'rotten400k': rotten400k_dpt,
-    'olist': olist_dpt
+    'olist': olist_dpt,
+    'helpdesk': helpdesk_dpt
 }
 
 

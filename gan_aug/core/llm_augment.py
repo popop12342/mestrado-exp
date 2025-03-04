@@ -86,6 +86,7 @@ def augment_data(samples: list[tuple[str, str]], generated_per_round: int, base_
 
     generated_samples = []
     if result:
+        log.debug(result)
         for record in result:
             if 'text' in record and 'label' in record:
                 generated = (record['text'], record['label'])
@@ -108,6 +109,7 @@ def create_llm_prompt(generated_per_round: int, base_dataset: str) -> ChatPrompt
 def export_to_file(samples: list[tuple[str, str]], output_file: str):
     with open(output_file, 'w') as f:
         for sentence, label in samples:
+            sentence = sentence.replace('\n', '\\n')
             f.write(f'{label}\t{sentence}\n')
 
 
@@ -155,11 +157,13 @@ def run_augmentation(config: AugmentationConfig):
 
 def clean_sentences(labels: list[str], all_sentences: list[tuple[str, str]]) -> list[tuple[str, str]]:
     cleaned_samples = []
+    lower_labels = [label.lower() for label in labels]
+    log.info('Lower labels %s', lower_labels)
     for sentence, label in all_sentences:
-        if label.lower() not in labels:
+        if label.lower() not in lower_labels:
             log.error('Invalid label: %s; %s', label, sentence)
             continue
-        label_id = labels.index(label.lower())
+        label_id = lower_labels.index(label.lower())
         sentence = sentence.strip()
         cleaned_samples.append((sentence, label_id))
     return cleaned_samples
@@ -183,39 +187,39 @@ def check_dir(output_file):
 
 
 if __name__ == '__main__':
-    # parser = ArgumentParser()
-    # parser.add_argument('--labels', nargs=2, default=['subjective', 'objective'])  # test for binary classification
-    # parser.add_argument('--dataset', default='subj_001')
-    # parser.add_argument('--rounds', default=1, type=int)
-    # parser.add_argument('--samples_per_round', default=5, type=int)
-    # parser.add_argument('--generated_per_round', default=5, type=int)
-    # parser.add_argument('--threshold', default=0.8, type=float)
-    # parser.add_argument('--filter', default=False, type=bool)
-    # parser.add_argument('--model', default='gpt-4o-mini')
-    # parser.add_argument('--model_type', default='openai')
+    parser = ArgumentParser()
+    parser.add_argument('--labels', nargs=2, default=['subjective', 'objective'])  # test for binary classification
+    parser.add_argument('--dataset', default='subj_001')
+    parser.add_argument('--rounds', default=1, type=int)
+    parser.add_argument('--samples_per_round', default=5, type=int)
+    parser.add_argument('--generated_per_round', default=5, type=int)
+    parser.add_argument('--threshold', default=0.8, type=float)
+    parser.add_argument('--filter', default=False, type=bool)
+    parser.add_argument('--model', default='gpt-4o-mini')
+    parser.add_argument('--model_type', default='openai')
 
-    # args = parser.parse_args()
-    # config = AugmentationConfig(
-    #     dataset=args.dataset,
-    #     labels=args.labels,
-    #     rounds=args.rounds,
-    #     samples_per_round=args.samples_per_round,
-    #     generate_per_round=args.generated_per_round,
-    #     threshold=args.threshold,
-    #     filter_enabled=args.filter,
-    #     model=args.model,
-    #     model_type=args.model_type
-    # )
-    # run_augmentation(config)
+    args = parser.parse_args()
+    config = AugmentationConfig(
+        dataset=args.dataset,
+        labels=args.labels,
+        rounds=args.rounds,
+        samples_per_round=args.samples_per_round,
+        generate_per_round=args.generated_per_round,
+        threshold=args.threshold,
+        filter_enabled=args.filter,
+        model=args.model,
+        model_type=args.model_type
+    )
+    run_augmentation(config)
 
     # Just for testing llm filtering, using the same real dataset and reference and to filter
-    real_sentences, real_labels, _, _ = load_dataset('aclImdb_001')
-    real_data = list(zip(real_sentences, real_labels))
-    fake_sentences, fake_labels, _, _ = load_dataset('cllmaclImdb_001')
-    fake_data = list(zip(fake_sentences, fake_labels))
-    fake_data = fake_data[len(real_data):]
-    print(f'only filtering {len(fake_data)} fake samples')
+    # real_sentences, real_labels, _, _ = load_dataset('aclImdb_001')
+    # real_data = list(zip(real_sentences, real_labels))
+    # fake_sentences, fake_labels, _, _ = load_dataset('cllmaclImdb_001')
+    # fake_data = list(zip(fake_sentences, fake_labels))
+    # fake_data = fake_data[len(real_data):]
+    # print(f'only filtering {len(fake_data)} fake samples')
 
-    filtered_samples = llm_filter(real_data, fake_data)
-    print(f'Filtered {len(filtered_samples)} samples')
-    export_to_file(filtered_samples, '../data/aclImdb_001_filtered.txt')
+    # filtered_samples = llm_filter(real_data, fake_data)
+    # print(f'Filtered {len(filtered_samples)} samples')
+    # export_to_file(filtered_samples, '../data/aclImdb_001_filtered.txt')
