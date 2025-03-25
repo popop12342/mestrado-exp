@@ -11,7 +11,7 @@ DATA_DIR = '../data'
 
 class AugmentationConfig(BaseModel):
     dataset: str
-    labels: list[str]
+    # labels: list[str]
     rounds: int
     samples_per_round: int
     generate_per_round: int

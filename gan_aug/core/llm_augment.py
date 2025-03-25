@@ -14,7 +14,7 @@ from tqdm import tqdm
 from augment.prompts import get_prompt_template
 from augment.augmentation_config import AugmentationConfig
 from augment.filter.filter_augmentation import filter_augmentation, llm_filter
-from dataset_loader.dataset_loader import load_dataset
+from dataset_loader.dataset_loader import load_dataset, get_label_names
 
 log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -114,7 +114,9 @@ def export_to_file(samples: list[tuple[str, str]], output_file: str):
 
 
 def run_augmentation(config: AugmentationConfig):
-    train_data, test_data = load_prepare_data(config.labels, config.dataset)
+    labels = get_label_names(config.dataset)
+    log.info('Labels: %s', labels)
+    train_data, test_data = load_prepare_data(labels, config.dataset)
 
     llm = create_chat_model(config.model, config.model_type)
 
@@ -140,7 +142,7 @@ def run_augmentation(config: AugmentationConfig):
 
     log.info(f'Total samples: {len(all_sentences)}')
 
-    cleaned_samples = clean_sentences(config.labels, all_sentences)
+    cleaned_samples = clean_sentences(labels, all_sentences)
 
     naug = int(config.generate_per_round * config.rounds / len(train_data))
     output_file = config.get_output_file(naug)
@@ -188,7 +190,7 @@ def check_dir(output_file):
 
 if __name__ == '__main__':
     parser = ArgumentParser()
-    parser.add_argument('--labels', nargs=2, default=['subjective', 'objective'])  # test for binary classification
+    # parser.add_argument('--labels', nargs=2, default=['subjective', 'objective'])  # test for binary classification
     parser.add_argument('--dataset', default='subj_001')
     parser.add_argument('--rounds', default=1, type=int)
     parser.add_argument('--samples_per_round', default=5, type=int)
@@ -201,7 +203,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     config = AugmentationConfig(
         dataset=args.dataset,
-        labels=args.labels,
+        # labels=args.labels,
         rounds=args.rounds,
         samples_per_round=args.samples_per_round,
         generate_per_round=args.generated_per_round,

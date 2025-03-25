@@ -4,16 +4,18 @@ from ..dataset_prompt_template import DatasetPromptTemplate
 aclimdb_prompt_template = """INSTRUCTION
 Here are some examples of movie reviews labeled as either "Positive" or "Negative."
 Generate a new movie reviews, keeping the tone and style similar to the examples.
-{}
-
+These reviews are good because they are representative of movie lovers who engage in discussions about movies in
+websites like IMDB, and shows the common ways people express their opinions about movies and their aspects.
 EXAMPLES
-{{examples_text}}
+
+{examples_text}
 
 OUTPUT
-Generate {{num}} new reviews that matches these classifications.
+Generate {num} new reviews, their classification and a reason why that is a good sentence
+to include in the training dataset.
 Your output should be in JSON format and you shoud ONLY return this JSON.
-Return a list of objects with the keys `text` (for the generated text) and
-`label` for its label
+Return a list of objects with the keys `text` (for the generated text),
+`label` for its label, and `reason` for the reason why that is a good sentence.
 """
 
 # aclimdb_prompt_template = """INSTRUCTION
@@ -63,5 +65,5 @@ aclImdb_key_characteristics: dict[str, list[str]] = {
 }
 
 aclimdb_dpt = DatasetPromptTemplate(dataset='aclImdb',
-                                    prompt_template=aclimdb_prompt_template,
-                                    generation_instructions=aclImdb_key_characteristics)
+                                    prompt_template=aclimdb_prompt_template)
+                                    # generation_instructions=aclImdb_key_characteristics)

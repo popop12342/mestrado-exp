@@ -16,6 +16,7 @@ from models.bert_discriminator import BERTDiscriminator, model_name
 from sklearn.metrics import f1_score, precision_score, recall_score
 from torch.utils.data import DataLoader
 from util.early_stopping import EarlyStopping
+from dataset_loader import dataset_loader
 
 # Set random values
 seed_val = 42
@@ -29,7 +30,7 @@ num_train_epochs = 30
 noise_size = 100
 batch_size = 8
 epsilon = 1e-8
-EPOCHS = 20
+EPOCHS = 50
 lr = 5e-5
 
 tokenizer = AutoTokenizer.from_pretrained(model_name)
@@ -59,12 +60,13 @@ def save_stats(stats: List[Dict], filename: str):
 
 
 def train(trial: Trial) -> float:
+    labels = dataset_loader.get_labels(trial.study.user_attrs['dataset'])
     dataset = trial.study.user_attrs['dataset']
     num_aug = trial.study.user_attrs['num_aug']
     train_dataloader, test_dataloader, seq_size = create_bert_dataloaders(dataset, device=device,
                                                                           num_aug=num_aug, tokenizer=tokenizer)
 
-    model = BERTDiscriminator(num_layers=1, seq_size=seq_size, device=device)
+    model = BERTDiscriminator(num_layers=1, seq_size=seq_size, device=device, num_labels=len(labels))
     # print(model)
 
     model.to(device)
@@ -100,7 +102,7 @@ def train(trial: Trial) -> float:
 
             # The discriminator provides an output for labeled and unlabeled real data
             # so the loss evaluated for unlabeled data is ignored (masked)
-            label2one_hot = torch.nn.functional.one_hot(label, 2)
+            label2one_hot = torch.nn.functional.one_hot(label, len(labels))
             per_example_loss = -torch.sum(label2one_hot * log_probs, dim=-1)
             per_example_loss = torch.masked_select(per_example_loss, label_mask)
             labeled_example_count = per_example_loss.type(torch.float32).numel()

@@ -64,8 +64,10 @@ def objective(trial: Trial) -> float:
     # Models
     num_layers = trial.study.user_attrs['num_layers']
     hidden_size = trial.study.user_attrs['hidden_size']
+    # num_layers = trial.suggest_int('num_layers', 1, 8)
+    # hidden_size = trial.suggest_int('hidden_size', 1, 256)
     discriminator = BERTDiscriminator(num_layers, seq_size, device, num_labels=len(labels))
-    generator = Generator(num_layers=num_layers, noise_size=noise_size, output_size=tokenizer.vocab_size,
+    generator = Generator(num_layers=4, noise_size=noise_size, output_size=tokenizer.vocab_size,
                           hidden_size=hidden_size, initial_temperature=initial_temp)
     # print(generator)
     # print('generator parameters: ' + str(sum(p.numel() for p in generator.parameters() if p.requires_grad)))

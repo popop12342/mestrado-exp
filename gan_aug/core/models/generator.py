@@ -12,7 +12,14 @@ class Generator(nn.Module):
         self.dropout = dropout
         self.temperature = initial_temperature
 
-        self.gru = nn.GRU(
+        # self.gru = nn.GRU(
+        #     input_size=noise_size,
+        #     hidden_size=self.hidden_size,
+        #     num_layers=self.num_layers,
+        #     batch_first=True,
+        #     dropout=self.dropout
+        # )
+        self.lstm = nn.LSTM(
             input_size=noise_size,
             hidden_size=self.hidden_size,
             num_layers=self.num_layers,
@@ -24,10 +31,13 @@ class Generator(nn.Module):
         self.softmax = nn.Softmax(dim=-1)
 
     def initHidden(self, batch_size, device):
-        return torch.zeros(self.num_layers, batch_size, self.hidden_size, device=device)
+        h0 = torch.zeros(self.num_layers, batch_size, self.hidden_size, device=device)
+        c0 = torch.zeros(self.num_layers, batch_size, self.hidden_size, device=device)
+        return (h0, c0)
 
     def forward(self, noise, hidden):
-        output, hidden = self.gru(noise, hidden)
+        # output, hidden = self.gru(noise, hidden)
+        output, hidden = self.lstm(noise, hidden)
         logits = self.out(output)
         gumbel_out = nn.functional.gumbel_softmax(logits, self.temperature)
         return gumbel_out

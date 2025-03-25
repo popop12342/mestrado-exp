@@ -47,6 +47,14 @@ def get_labels(dataset_name: str) -> list[str]:
     return dataset_loader.get_labels()
 
 
+def get_label_names(dataset_name: str) -> list[str]:
+    dataset_loader = _get_dataset_loader(dataset_name)
+    if isinstance(dataset_loader, ConfigurableLLMDatasetLoader):
+        base_dataset_name = dataset_loader.base_dataset
+        return _get_dataset_loader(base_dataset_name).get_label_names()
+    return dataset_loader.get_label_names()
+
+
 def _get_dataset_loader(dataset_name: str) -> AbstractDatasetLoader:
     name = dataset_name.split('_')[0]
     return _dataset_loaders[name]
