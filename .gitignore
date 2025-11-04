@@ -234,6 +234,11 @@ ganbert_subj/data/*
 gan_aug/core/stats/**/*.json
 gan_aug/img/*
 gan_aug/data/*
+!gan_aug/data/subj
+!gan_aug/data/task_oriented_dialog
+!gan_aug/data/olist
+!gan_aug/data/sentiment_analysis
+!gan_aug/data/helpdesk
 gan_aug/models/*
 gan_aug/word2vec/*
 gan_aug/core/db/*
